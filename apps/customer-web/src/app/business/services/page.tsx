@@ -3,7 +3,7 @@
  * pricing. Publishing hits the permission-gated backend endpoint
  * (services:publish for platform catalog; business-scoped publish for the
  * org catalog) - the UI never fabricates a published state. */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ApiError } from "../../../lib/api";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
