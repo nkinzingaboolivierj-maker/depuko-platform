@@ -1,0 +1,69 @@
+name: Import DEPUKO V8 source archive
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "DEPUKO-V8-FINAL-SOURCE-HANDOFF-NOT-READY.zip"
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Verify and extract source safely
+        run: |
+          python3 - <<'PY'
+          import hashlib, os, pathlib, shutil, stat, zipfile
+          archive = pathlib.Path("DEPUKO-V8-FINAL-SOURCE-HANDOFF-NOT-READY.zip")
+          expected = "8973a2fba078bccdf432b27547f225e8f3ae45598fda28a2e1dcecbe13f15b29"
+          actual = hashlib.sha256(archive.read_bytes()).hexdigest()
+          if actual != expected:
+              raise SystemExit(f"SHA-256 mismatch: {actual}")
+          target = pathlib.Path(".").resolve()
+          with zipfile.ZipFile(archive) as z:
+              for info in z.infolist():
+                  name = info.filename
+                  if not name.startswith("DEPUKO/"):
+                      raise SystemExit(f"Unexpected archive path: {name}")
+                  p = pathlib.PurePosixPath(name)
+                  if p.is_absolute() or ".." in p.parts:
+                      raise SystemExit(f"Unsafe path: {name}")
+                  if stat.S_ISLNK(info.external_attr >> 16):
+                      raise SystemExit(f"Symlink blocked: {name}")
+                  rel = pathlib.Path(*p.parts[1:])
+                  if not rel.parts:
+                      continue
+                  if any(part in {".git", "node_modules", "dist", "build", ".next"} for part in rel.parts):
+                      continue
+                  if rel.name == ".env" or rel.name.startswith(".env.") and rel.name != ".env.example":
+                      continue
+                  dest = (target / rel).resolve()
+                  if target not in dest.parents and dest != target:
+                      raise SystemExit(f"Destination escaped repository: {name}")
+                  if info.is_dir():
+                      dest.mkdir(parents=True, exist_ok=True)
+                      continue
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  with z.open(info) as src, open(dest, "wb") as dst:
+                      shutil.copyfileobj(src, dst)
+          archive.unlink()
+          print("Archive checksum verified and source extracted.")
+          PY
+      - name: Commit imported source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No source changes to commit."
+          else
+            git commit -m "Import DEPUKO V8 source candidate"
+            git push origin main
+          fi
