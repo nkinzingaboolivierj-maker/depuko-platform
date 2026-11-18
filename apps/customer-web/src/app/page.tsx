@@ -53,11 +53,15 @@ export default function Home() {
   }
 
   function guide(prompt: string) {
+    if (prompt.startsWith("I need:")) {
+      setGuideMessage(`Thanks for sharing: “${prompt.slice(7)}”. Try searching the catalog with a shorter service name, or choose a category above. I can offer guided help, but live AI chat isn't connected yet.`);
+      return;
+    }
     setGuideMessage(prompt === "Find a provider"
       ? "Tell me the service, where you need it, and when. You can also use the search box to check available providers."
       : prompt === "Help me describe my project"
       ? "Try describing the goal, the style you like, your budget range, and when you need it. Example: ‘I need a 60-second promotional film for my shop in Kigali next month.’"
-      : "DEPUKO helps you discover services, compare providers, and organize requests. Choose a category or tell me what you need.");
+      : "DEPUKO helps you discover services, compare providers, and organize requests. Choose a category or tell me what you need. Live AI chat isn't connected yet.");
   }
 
   return (
