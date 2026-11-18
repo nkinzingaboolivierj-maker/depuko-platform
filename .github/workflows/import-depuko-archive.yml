@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "DEPUKO-V8-FINAL-SOURCE-HANDOFF-NOT-READY.zip"
+      - ".github/workflows/import-depuko-archive.yml"
 
 permissions:
   contents: write
@@ -20,13 +21,13 @@ jobs:
       - name: Verify and extract source safely
         run: |
           python3 - <<'PY'
-          import hashlib, os, pathlib, shutil, stat, zipfile
+          import hashlib, pathlib, shutil, stat, zipfile
           archive = pathlib.Path("DEPUKO-V8-FINAL-SOURCE-HANDOFF-NOT-READY.zip")
           expected = "8973a2fba078bccdf432b27547f225e8f3ae45598fda28a2e1dcecbe13f15b29"
           actual = hashlib.sha256(archive.read_bytes()).hexdigest()
           if actual != expected:
               raise SystemExit(f"SHA-256 mismatch: {actual}")
-          target = pathlib.Path(".").resolve()
+          root = pathlib.Path(".").resolve()
           with zipfile.ZipFile(archive) as z:
               for info in z.infolist():
                   name = info.filename
@@ -40,12 +41,15 @@ jobs:
                   rel = pathlib.Path(*p.parts[1:])
                   if not rel.parts:
                       continue
+                  if rel.as_posix() == ".github/workflows/ci.yml":
+                      print("Skipping CI workflow: GitHub App lacks workflow write permission.")
+                      continue
                   if any(part in {".git", "node_modules", "dist", "build", ".next"} for part in rel.parts):
                       continue
-                  if rel.name == ".env" or rel.name.startswith(".env.") and rel.name != ".env.example":
+                  if rel.name == ".env" or (rel.name.startswith(".env.") and rel.name != ".env.example"):
                       continue
-                  dest = (target / rel).resolve()
-                  if target not in dest.parents and dest != target:
+                  dest = (root / rel).resolve()
+                  if root not in dest.parents and dest != root:
                       raise SystemExit(f"Destination escaped repository: {name}")
                   if info.is_dir():
                       dest.mkdir(parents=True, exist_ok=True)
@@ -54,6 +58,7 @@ jobs:
                   with z.open(info) as src, open(dest, "wb") as dst:
                       shutil.copyfileobj(src, dst)
           archive.unlink()
+          pathlib.Path("UPLOAD_INIT.md").unlink(missing_ok=True)
           print("Archive checksum verified and source extracted.")
           PY
       - name: Commit imported source
