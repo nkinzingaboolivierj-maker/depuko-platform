@@ -7,7 +7,7 @@ import { api, ApiError } from '../lib/api';
  * does not create an order or claim a booking has been made. */
 export function RequestInput() {
   const [value, setValue] = useState('');
-  const [results, setResults] = useState<{ id: string }[] | null>(null);
+  const [results, setResults] = useState<{ definitionId: string; domain: string; category: string; capabilities: string[]; type: string; configuration: Record<string, unknown> }[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +44,7 @@ export function RequestInput() {
       {error && <p role="alert">{error}</p>}
       {results && (results.length === 0
         ? <p>No published services matched your description.</p>
-        : <ul>{results.map(item => <li key={item.id}>Service {item.id}</li>)}</ul>)}
+        : <ul>{results.map(item => <li key={item.definitionId}><strong>{item.category}</strong> — {item.capabilities.join(' · ')}</li>)}</ul>)}
       <p>Search finds published services only; it does not submit an order or guarantee availability.</p>
     </section>
   );
