@@ -1,13 +1,15 @@
 import { SessionProvider } from "../lib/session";
+import "./globals.css";
 
-export const metadata = { title: "DEPUKO" };
+export const metadata = {
+  title: "DEPUKO | Find people who make it happen",
+  description: "Find the right people to bring your ideas to life. Discover services on DEPUKO.",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0 }}>
-        <SessionProvider>{children}</SessionProvider>
-      </body>
+      <body><SessionProvider>{children}</SessionProvider></body>
     </html>
   );
 }
