@@ -21,7 +21,8 @@ export default function Home() {
   const [results, setResults] = useState<Service[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [guideOpen, setGuideOpen] = useState(false);\n  const [guideInput, setGuideInput] = useState("");
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideInput, setGuideInput] = useState("");
   const [guideMessage, setGuideMessage] = useState("Hi! I can help you describe what you need and search DEPUKO's service catalog. What are you looking for?");
 
   async function search(query = need) {
