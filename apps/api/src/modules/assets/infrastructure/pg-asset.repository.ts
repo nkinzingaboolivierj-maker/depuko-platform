@@ -3,8 +3,8 @@ import { DatabaseService } from "../../../infrastructure/database/database.servi
 import { AssetRepositoryPort, AssetRow, ReservationRow } from "../domain/asset.repository.port";
 
 /** Double allocation is IMPOSSIBLE at the database level: migration 0011 has
- * an EXCLUDE USING gist constraint on (asset_id =, window &&). The insert
- * simply fails on overlap - no application race can beat it. */
+ * an EXCLUDE USING gist constraint on (asset_id =, reservation_window &&).
+ * The insert simply fails on overlap - no application race can beat it. */
 @Injectable()
 export class PgAssetRepository implements AssetRepositoryPort {
   constructor(private readonly db: DatabaseService) {}
@@ -24,7 +24,7 @@ export class PgAssetRepository implements AssetRepositoryPort {
     if (asset.condition === "retired") throw new Error("retired assets cannot be reserved");
     const id = "res_" + Math.random().toString(36).slice(2, 12);
     await this.db.query(
-      `INSERT INTO asset_reservations (id, asset_id, reserved_by, window)
+      `INSERT INTO asset_reservations (id, asset_id, reserved_by, reservation_window)
        VALUES ($1, $2, $3, tstzrange($4, $5))`,
       [id, params.assetId, params.reservedBy, params.start, params.end],
     );
