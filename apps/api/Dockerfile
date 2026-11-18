@@ -6,6 +6,7 @@ COPY tsconfig.base.json ./
 COPY apps ./apps
 COPY packages ./packages
 COPY services ./services
+COPY database ./database
 RUN npm install --legacy-peer-deps
 RUN npm run build --workspace=@depuko/api
 
@@ -18,4 +19,4 @@ USER depuko
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD wget -qO- http://127.0.0.1:${PORT:-4000}/api/v1/health || exit 1
-CMD ["node", "apps/api/dist/main.js"]
+CMD ["sh", "-c", "node apps/api/scripts/migrate.js && node apps/api/dist/main.js"]
