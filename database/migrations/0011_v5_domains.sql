@@ -70,8 +70,8 @@ CREATE TABLE asset_reservations (
     id          TEXT PRIMARY KEY,
     asset_id    TEXT NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
     reserved_by TEXT NOT NULL REFERENCES users (id),
-    window      TSTZRANGE NOT NULL,
+    reservation_window TSTZRANGE NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    EXCLUDE USING gist (asset_id WITH =, window WITH &&)
+    EXCLUDE USING gist (asset_id WITH =, reservation_window WITH &&)
 );
 COMMIT;
