@@ -1,0 +1,43 @@
+# Staging stack. DB ports stay on the internal network - NOT published.
+# TLS terminates at the reverse proxy. Secrets come from the host env, never
+# from files inside the repo.
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: depuko
+      POSTGRES_PASSWORD: ${DEPUKO_DB_PASSWORD}
+      POSTGRES_DB: depuko
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [depuko]
+    restart: unless-stopped
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    environment:
+      DATABASE_URL: postgresql://depuko:${DEPUKO_DB_PASSWORD}@db:5432/depuko
+      PAYMENT_PROVIDER_SECRET: ${PAYMENT_PROVIDER_SECRET:-}
+      PAYOUT_PROVIDER_SECRET: ${PAYOUT_PROVIDER_SECRET:-}
+      AI_PROVIDER_API_KEY: ${AI_PROVIDER_API_KEY:-}
+      API_PORT: 4000
+    depends_on: [db]
+    networks: [depuko]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  proxy:
+    image: nginx:alpine
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./infrastructure/nginx/depuko.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./infrastructure/nginx/certs:/etc/nginx/certs:ro
+    depends_on: [api]
+    networks: [depuko]
+    restart: unless-stopped
+volumes:
+  pgdata:
+networks:
+  depuko:

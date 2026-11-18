@@ -1,0 +1,13 @@
+DEPUKO V8 REPAIR CANDIDATE
+DECISION: NOT READY / NO-GO FOR PRODUCTION
+
+This is a source handoff candidate, not a certified production release.
+The original six-builder chain was not successfully executed from a clean baseline.
+Node dependency installation did not complete; TypeScript diagnostics remain due to missing packages/types.
+Jest, PostgreSQL migrations, HTTP E2E, Playwright, Expo and Docker staging were not executed.
+The payment webhook currently posts ledger entries without persisting a captured payment or transitioning the payment intent.
+The webhook dedup marker is not atomic with ledger posting. Keep all real-money functionality OFF.
+Business, admin, customer and worker workflows remain partially implemented and not fully end-to-end verified.
+
+Read docs/final/DEPUKO-FINAL-TEST-REPORT.md, docs/final/DEPUKO-FINAL-IMPLEMENTATION-AUDIT.md,
+and docs/final/DEPUKO-FINAL-DEPLOYMENT-GUIDE.md before attempting local verification.

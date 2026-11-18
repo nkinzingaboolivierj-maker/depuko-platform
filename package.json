@@ -1,0 +1,23 @@
+{
+  "name": "depuko",
+  "private": true,
+  "version": "0.1.0",
+  "description": "DEPUKO — AI-powered Universal Service Operating System for DINORT GROUP",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev:api": "pnpm --filter @depuko/api start:dev",
+    "dev:web": "pnpm --filter @depuko/customer-web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

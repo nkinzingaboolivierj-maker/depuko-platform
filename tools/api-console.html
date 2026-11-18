@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DEPUKO — API Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #eef0f2;
+    --panel: #ffffff;
+    --ink: #12151a;
+    --muted: #5b6270;
+    --line: #d9dce1;
+    --accent: #5b3df5;
+    --accent-dim: #ece9fd;
+    --ok: #1f7a4c;
+    --ok-dim: #e6f4ec;
+    --err: #c4293a;
+    --err-dim: #fbe8ea;
+    --radius: 10px;
+    font-size: 16px;
+  }
+
+  * { box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.45;
+  }
+
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  header.top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: -0.01em;
+  }
+
+  .wordmark small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .session-state {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .session-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--err);
+    flex-shrink: 0;
+  }
+  .session-dot.on { background: var(--ok); }
+
+  .api-base {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    margin-bottom: 28px;
+  }
+
+  .api-base label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .api-base input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--ink);
+    outline: none;
+    min-width: 180px;
+  }
+
+  /* --- pipeline visualizer: the signature element. Each node is a real
+     architectural layer this backend actually has — not decoration. --- */
+  .pipeline {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 20px 18px;
+    margin-bottom: 12px;
+  }
+
+  .pipeline-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .stages {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    transition: background 0.5s ease, transform 0.3s ease, box-shadow 0.5s ease;
+    flex-shrink: 0;
+  }
+
+  .stage .dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+
+  .stage .name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .stage .sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .stage.active {
+    background: var(--accent-dim);
+    transform: translateY(-2px);
+  }
+  .stage.active .dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(91, 61, 245, 0.18);
+  }
+
+  .connector {
+    width: 24px;
+    height: 1px;
+    background: var(--line);
+    flex-shrink: 0;
+  }
+
+  .path-line {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 10px 4px 0;
+    min-height: 1.2em;
+  }
+
+  main.panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+  }
+  @media (max-width: 760px) {
+    main.panels { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panel .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .panel h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .route {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .panel label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .field { margin-bottom: 2px; }
+
+  .panel input[type="text"],
+  .panel input[type="password"],
+  .panel select,
+  .panel textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--ink);
+    background: #fbfbfc;
+    outline: none;
+  }
+  .panel input:focus,
+  .panel select:focus,
+  .panel textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .panel textarea { resize: vertical; min-height: 56px; }
+
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  button {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 14px;
+    cursor: pointer;
+    background: var(--ink);
+    color: #fff;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  button.accent { background: var(--accent); }
+
+  .status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 5px;
+    color: var(--muted);
+  }
+  .status--ok { background: var(--ok-dim); color: var(--ok); }
+  .status--error { background: var(--err-dim); color: var(--err); }
+
+  .response {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.74rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #fbfbfc;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    max-height: 160px;
+    overflow-y: auto;
+    color: var(--ink);
+    min-height: 20px;
+  }
+
+  footer {
+    margin-top: 32px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+  footer code {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--accent-dim);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="wordmark">DEPUKO<small>API console · local dev only</small></div>
+    <div class="session-state"><span class="session-dot" id="sessionDot"></span><span id="sessionText">No session</span></div>
+  </header>
+
+  <div class="api-base">
+    <label for="apiBaseInput">API base</label>
+    <input id="apiBaseInput" type="text" value="http://localhost:4000/api/v1" />
+  </div>
+
+  <section class="pipeline">
+    <div class="pipeline-label">Request pipeline — lights up the layers your last action actually passed through</div>
+    <div class="stages" id="stages">
+      <div class="stage" data-stage="client"><span class="dot"></span><span class="name">Client</span><span class="sub">this page</span></div>
+      <div class="connector"></div>
+      <div class="stage" data-stage="guard-auth"><span class="dot"></span><span class="name">AuthGuard</span><span class="sub">session lookup</span></div>
+      <div class="connector"></div>
+      <div class="stage" data-stage="guard-permission"><span class="dot"></span><span class="name">PermissionGuard</span><span class="sub">role check</span></div>
+      <div class="connector"></div>
+      <div class="stage" data-stage="domain"><span class="dot"></span><span class="name">Domain</span><span class="sub">use case</span></div>
+      <div class="connector"></div>
+      <div class="stage" data-stage="database"><span class="dot"></span><span class="name">Postgres</span><span class="sub">pg driver</span></div>
+    </div>
+    <div class="path-line" id="pathLine">Run any action below to see its real request path.</div>
+  </section>
+
+  <main class="panels">
+
+    <!-- Register -->
+    <section class="panel" data-panel="register">
+      <div class="head"><h2>Register</h2><span class="route">POST /users</span></div>
+      <div class="field"><label>Email</label><input type="text" id="reg-email" value="customer@example.com" /></div>
+      <div class="field"><label>Password</label><input type="password" id="reg-password" value="correct-horse" /></div>
+      <div class="actions">
+        <button id="reg-run">Run</button>
+        <span class="status" id="reg-status"></span>
+      </div>
+      <div class="response" id="reg-response">No requests yet.</div>
+    </section>
+
+    <!-- Login -->
+    <section class="panel" data-panel="login">
+      <div class="head"><h2>Log in</h2><span class="route">POST /auth/login</span></div>
+      <div class="field"><label>Email</label><input type="text" id="login-email" value="customer@example.com" /></div>
+      <div class="field"><label>Password</label><input type="password" id="login-password" value="correct-horse" /></div>
+      <div class="actions">
+        <button id="login-run">Run</button>
+        <button class="secondary" id="login-seed">Use seeded dev admin</button>
+        <span class="status" id="login-status"></span>
+      </div>
+      <div class="response" id="login-response">No requests yet.</div>
+    </section>
+
+    <!-- Create draft -->
+    <section class="panel" data-panel="draft">
+      <div class="head"><h2>Create service draft</h2><span class="route">POST /services · requires session</span></div>
+      <div class="row">
+        <div class="field"><label>Domain</label><input type="text" id="draft-domain" value="home-services" /></div>
+        <div class="field"><label>Category</label><input type="text" id="draft-category" value="pet-care" /></div>
+      </div>
+      <div class="field"><label>Capabilities (comma-separated)</label><input type="text" id="draft-capabilities" value="pet_grooming, mobile_service" /></div>
+      <div class="row">
+        <div class="field"><label>Type</label>
+          <select id="draft-type">
+            <option value="fixed_price" selected>fixed_price</option>
+            <option value="hourly">hourly</option>
+            <option value="daily">daily</option>
+            <option value="per_item">per_item</option>
+            <option value="per_person">per_person</option>
+            <option value="per_km">per_km</option>
+            <option value="per_m2">per_m2</option>
+            <option value="per_session">per_session</option>
+            <option value="milestone">milestone</option>
+            <option value="recurring">recurring</option>
+            <option value="subscription">subscription</option>
+            <option value="inspection_first">inspection_first</option>
+            <option value="custom_quote">custom_quote</option>
+            <option value="composite">composite</option>
+            <option value="product_and_service">product_and_service</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Configuration (JSON)</label><textarea id="draft-config">{"basePrice": 15000, "currency": "RWF"}</textarea></div>
+      <div class="actions">
+        <button id="draft-run">Run</button>
+        <span class="status" id="draft-status"></span>
+      </div>
+      <div class="response" id="draft-response">No requests yet.</div>
+    </section>
+
+    <!-- Publish -->
+    <section class="panel" data-panel="publish">
+      <div class="head"><h2>Publish version</h2><span class="route">POST /services/:id/publish · requires admin</span></div>
+      <div class="field"><label>Definition ID</label><input type="text" id="pub-defid" placeholder="filled after Create draft" /></div>
+      <div class="field"><label>Version ID</label><input type="text" id="pub-verid" placeholder="filled after Create draft" /></div>
+      <div class="actions">
+        <button id="pub-run">Run</button>
+        <span class="status" id="pub-status"></span>
+      </div>
+      <div class="response" id="pub-response">No requests yet. A customer session will get a 403 here — that's the RBAC working, not a bug.</div>
+    </section>
+
+    <!-- Search -->
+    <section class="panel" data-panel="search">
+      <div class="head"><h2>Search by capability</h2><span class="route">GET /services · public, published only</span></div>
+      <div class="field"><label>Capability</label><input type="text" id="search-capability" value="pet_grooming" /></div>
+      <div class="actions">
+        <button id="search-run">Run</button>
+        <span class="status" id="search-status"></span>
+      </div>
+      <div class="response" id="search-response">No requests yet. Only published services appear here — drafts stay hidden by design.</div>
+    </section>
+
+  </main>
+
+  <footer>
+    Seeded dev admin: <code>dev-admin@depuko.local</code> / <code>depuko-dev-admin</code> — from
+    <code>database/seeds/0001_dev_admin.sql</code>. Local development only; this console keeps its
+    session token in memory for this tab and forgets it on reload. Start the API with
+    <code>pnpm dev:api</code> from the repo root before running requests here.
+  </footer>
+
+</div>
+
+<script>
+  const state = { token: null };
+
+  const $ = (id) => document.getElementById(id);
+  const apiBaseInput = $('apiBaseInput');
+  const sessionDot = $('sessionDot');
+  const sessionText = $('sessionText');
+  const pathLine = $('pathLine');
+
+  function setStages(ids, pathText) {
+    document.querySelectorAll('.stage').forEach((el) => {
+      el.classList.toggle('active', ids.includes(el.dataset.stage));
+    });
+    pathLine.textContent = 'Path: ' + pathText;
+  }
+
+  function setSession(token) {
+    state.token = token;
+    sessionDot.classList.toggle('on', !!token);
+    sessionText.textContent = token ? ('Session · token ' + token.slice(0, 10) + '…') : 'No session';
+  }
+
+  async function callApi({ panel, method, path, body, auth, stages, pathText }) {
+    const responseEl = $(panel + '-response');
+    const statusEl = $(panel + '-status');
+    responseEl.textContent = 'Running…';
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+    setStages(stages, pathText);
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (auth) {
+      if (!state.token) {
+        responseEl.textContent = 'No session token yet — run Log in first.';
+        statusEl.textContent = 'blocked';
+        statusEl.classList.add('status--error');
+        return null;
+      }
+      headers['Authorization'] = 'Bearer ' + state.token;
+    }
+
+    const base = apiBaseInput.value.replace(/\/$/, '');
+    try {
+      const res = await fetch(base + path, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+      const text = await res.text();
+      let parsed;
+      try { parsed = text ? JSON.parse(text) : null; } catch (e) { parsed = text; }
+      responseEl.textContent = JSON.stringify(parsed, null, 2);
+      statusEl.textContent = String(res.status);
+      statusEl.classList.add(res.ok ? 'status--ok' : 'status--error');
+      return { ok: res.ok, status: res.status, data: parsed };
+    } catch (err) {
+      responseEl.textContent =
+        'Request failed: ' + err.message +
+        '\n\nIs the API running? Start it with `pnpm dev:api` from the repo root, ' +
+        'and confirm the API base URL above matches.';
+      statusEl.textContent = 'network error';
+      statusEl.classList.add('status--error');
+      return null;
+    }
+  }
+
+  // --- Register ---
+  $('reg-run').addEventListener('click', async () => {
+    await callApi({
+      panel: 'reg',
+      method: 'POST',
+      path: '/users',
+      body: { email: $('reg-email').value, password: $('reg-password').value },
+      stages: ['client', 'domain', 'database'],
+      pathText: 'Client → users domain (register) → Postgres',
+    });
+  });
+
+  // --- Login ---
+  $('login-seed').addEventListener('click', () => {
+    $('login-email').value = 'dev-admin@depuko.local';
+    $('login-password').value = 'depuko-dev-admin';
+  });
+
+  $('login-run').addEventListener('click', async () => {
+    const result = await callApi({
+      panel: 'login',
+      method: 'POST',
+      path: '/auth/login',
+      body: { email: $('login-email').value, password: $('login-password').value },
+      stages: ['client', 'domain', 'database'],
+      pathText: 'Client → users domain (verify credentials) → auth domain (issue session) → Postgres',
+    });
+    if (result && result.ok && result.data && result.data.token) {
+      setSession(result.data.token);
+    }
+  });
+
+  // --- Create draft ---
+  $('draft-run').addEventListener('click', async () => {
+    let configuration;
+    try {
+      configuration = JSON.parse($('draft-config').value);
+    } catch (e) {
+      $('draft-response').textContent = 'Configuration is not valid JSON: ' + e.message;
+      $('draft-status').textContent = 'invalid input';
+      $('draft-status').className = 'status status--error';
+      return;
+    }
+    const capabilities = $('draft-capabilities').value.split(',').map((s) => s.trim()).filter(Boolean);
+
+    const result = await callApi({
+      panel: 'draft',
+      method: 'POST',
+      path: '/services',
+      auth: true,
+      body: {
+        domain: $('draft-domain').value,
+        category: $('draft-category').value,
+        capabilities,
+        type: $('draft-type').value,
+        configuration,
+      },
+      stages: ['client', 'guard-auth', 'domain', 'database'],
+      pathText: 'Client → AuthGuard → services domain (create draft) → Postgres',
+    });
+    if (result && result.ok && result.data) {
+      $('pub-defid').value = result.data.definitionId || '';
+      $('pub-verid').value = result.data.versionId || '';
+    }
+  });
+
+  // --- Publish ---
+  $('pub-run').addEventListener('click', async () => {
+    const definitionId = $('pub-defid').value.trim();
+    const versionId = $('pub-verid').value.trim();
+    if (!definitionId || !versionId) {
+      $('pub-response').textContent = 'Run Create draft first, or fill in both IDs manually.';
+      $('pub-status').textContent = 'missing input';
+      $('pub-status').className = 'status status--error';
+      return;
+    }
+    await callApi({
+      panel: 'pub',
+      method: 'POST',
+      path: '/services/' + encodeURIComponent(definitionId) + '/publish',
+      auth: true,
+      body: { versionId },
+      stages: ['client', 'guard-auth', 'guard-permission', 'domain', 'database'],
+      pathText: 'Client → AuthGuard → PermissionGuard (services:publish, admin only) → services domain → Postgres',
+    });
+  });
+
+  // --- Search ---
+  $('search-run').addEventListener('click', async () => {
+    const capability = encodeURIComponent($('search-capability').value.trim());
+    await callApi({
+      panel: 'search',
+      method: 'GET',
+      path: '/services?capability=' + capability,
+      stages: ['client', 'domain', 'database'],
+      pathText: 'Client → services domain (public search, published only) → Postgres',
+    });
+  });
+</script>
+</body>
+</html>
