@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { api, ApiError } from "../lib/api";
 
-type Service = { id: string; name?: string; title?: string; description?: string; category?: string; priceCents?: number; currency?: string; providerName?: string };
+type Service = { definitionId: string; domain: string; category: string; capabilities: string[]; type: string; configuration: Record<string, unknown> };
 
 const categories = [
   { name: "Home & repairs", icon: "🏠", query: "home repair", tint: "mint" },
@@ -43,7 +43,7 @@ export default function Home() {
       const key = Object.keys(alternatives).find(k => cleaned.toLowerCase().includes(k));
       if (!found.length && key) {
         const extra = await Promise.all(alternatives[key].map(term => api.searchServices(term).catch(() => [] as Service[])));
-        found = extra.flat().filter((service, i, arr) => arr.findIndex(x => x.id === service.id) === i);
+        found = extra.flat().filter((service, i, arr) => arr.findIndex(x => x.definitionId === service.definitionId) === i);
       }
       setResults(found);
     } catch (e) {
@@ -100,7 +100,7 @@ export default function Home() {
 
       {(results || error) && <section className="results-panel" aria-live="polite"><div className="section-heading"><div><span className="eyebrow eyebrow-muted">SEARCH RESULTS</span><h2>{results?.length ? "Services we found" : "Let's find another way"}</h2></div><button className="clear-search" onClick={() => { setResults(null); setError(null); }}>Clear ×</button></div>
         {error && <p className="notice notice-error">{error}</p>}
-        {results && results.length > 0 && <div className="result-grid">{results.map((s, i) => <article className="result-card" key={s.id}><div className="result-art">{["✦","◈","✳"][i % 3]}</div><div><h3>{s.name || s.title || s.category || "Service listing"}</h3><p>{s.description || "A service provider listed on DEPUKO."}</p>{s.providerName && <small>By {s.providerName}</small>}{typeof s.priceCents === "number" && <p className="result-price">{(s.priceCents / 100).toLocaleString()} {s.currency || "RWF"}</p>}</div></article>)}</div>}
+        {results && results.length > 0 && <div className="result-grid">{results.map((s, i) => <article className="result-card" key={s.definitionId}><div className="result-art">{["✦","◈","✳"][i % 3]}</div><div><h3>{s.category || "Service listing"}</h3><p>{s.capabilities?.length ? s.capabilities.join(" · ") : "Published service on DEPUKO"}</p><small>{s.domain} · {s.type}</small></div></article>)}</div>}
         {results && results.length === 0 && <div className="empty-state"><div className="empty-icon">✧</div><h3>No providers found for “{need}” just yet.</h3><p>Try a broader term, explore a category, or tell us more about your project. We won't leave you at a dead end.</p><div className="empty-actions"><button className="button button-dark" onClick={() => setGuideOpen(true)}>Help me shape my request <span>→</span></button><button className="button button-light" onClick={() => { setNeed(""); setResults(null); }}>Try another search</button></div></div>}
       </section>}
 
