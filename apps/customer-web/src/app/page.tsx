@@ -34,10 +34,10 @@ export default function Home() {
       let found = first as Service[];
       // Try a few related terms if the catalog has no exact capability match.
       const alternatives: Record<string, string[]> = {
-        film: ["video production", "videography", "film production"],
-        movie: ["video production", "videography", "film production"],
-        video: ["videography", "video production"],
-        logo: ["graphic design", "branding"],
+        film: ["film", "movie", "cinematography", "video production", "videography", "film production", "video editing"],
+        movie: ["movie", "film", "cinematography", "video production", "videography", "film production", "video editing"],
+        video: ["video", "videography", "video production", "film production", "video editing"],
+        logo: ["graphic design", "branding", "logo design"],
         plumber: ["plumbing", "home repair"],
         cleaning: ["home cleaning", "cleaning service"],
       };
@@ -106,7 +106,7 @@ export default function Home() {
       {(results || error) && <section className="results-panel" aria-live="polite"><div className="section-heading"><div><span className="eyebrow eyebrow-muted">SEARCH RESULTS</span><h2>{results?.length ? "Services we found" : "Let's find another way"}</h2></div><button className="clear-search" onClick={() => { setResults(null); setError(null); }}>Clear ×</button></div>
         {error && <p className="notice notice-error">{error}</p>}
         {results && results.length > 0 && <div className="result-grid">{results.map((s, i) => <article className="result-card" key={s.definitionId}><div className="result-art">{["✦","◈","✳"][i % 3]}</div><div><h3>{s.category || "Service listing"}</h3><p>{s.capabilities?.length ? s.capabilities.join(" · ") : "Published service on DEPUKO"}</p><small>{s.domain} · {s.type}</small></div></article>)}</div>}
-        {results && results.length === 0 && <div className="empty-state"><div className="empty-icon">✧</div><h3>No providers found for “{need}” just yet.</h3><p>Try a broader term, explore a category, or tell us more about your project. We won't leave you at a dead end.</p><div className="empty-actions"><button className="button button-dark" onClick={() => setGuideOpen(true)}>Help me shape my request <span>→</span></button><button className="button button-light" onClick={() => { setNeed(""); setResults(null); }}>Try another search</button></div></div>}
+        {results && results.length === 0 && <div className="empty-state"><div className="empty-icon">✧</div><h3>No providers found for “{need}” just yet.</h3><p>Try a broader term, explore a category, or tell us more about your project. We won't leave you at a dead end.</p><div className="empty-actions"><button className="button button-dark" onClick={() => setGuideOpen(true)}>Help me shape my request <span>→</span></button><button className="button button-light" onClick={() => { setNeed(""); setResults(null); }}>Try another search</button><a className="button button-light" href="/support">Request a service</a></div></div>}
       </section>}
 
       <section className="how-section"><div className="how-heading"><span className="eyebrow eyebrow-muted">HOW IT WORKS</span><h2>From idea to done.<br /><span>Without the stress.</span></h2></div><div className="how-steps"><article><span>01</span><div className="step-icon">✎</div><h3>Tell us what you need</h3><p>Describe your idea. No complicated forms or jargon.</p></article><article><span>02</span><div className="step-icon">⌕</div><h3>Find the right people</h3><p>Discover services and providers that fit your needs.</p></article><article><span>03</span><div className="step-icon">✦</div><h3>Make it happen</h3><p>Connect, plan, and move your project forward.</p></article></div></section>
