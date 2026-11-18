@@ -11,7 +11,7 @@
   "scripts": {
     "dev:api": "pnpm --filter @depuko/api start:dev",
     "dev:web": "pnpm --filter @depuko/customer-web dev",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --filter '!depuko' build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint"
