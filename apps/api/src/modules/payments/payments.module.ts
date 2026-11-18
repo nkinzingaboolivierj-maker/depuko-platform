@@ -10,6 +10,7 @@ import { PaymentsController } from "./presentation/payments.controller";
 import { PaymentIntentsController } from "./presentation/payment-intents.controller";
 import { PayoutsController } from "./presentation/payouts.controller";
 import { AuthModule } from "../auth/auth.module";
+import { AuthGuard } from "../security/infrastructure/guards/auth.guard";
 import { SecurityModule } from "../security/security.module";
 import { PgProcessedEventsRepository } from "./infrastructure/pg-processed-events.repository";
 import { PgPaymentsRepository } from "./infrastructure/pg-payments.repository";
@@ -22,6 +23,7 @@ const useInMemory = process.env.NODE_ENV === "test";
 @Module({
   imports: [FinanceModule, OrdersModule, AuthModule, SecurityModule],
   providers: [
+    AuthGuard,
     { provide: WebhookProcessor, useFactory: () => new WebhookProcessor(process.env.PAYMENT_PROVIDER_SECRET ?? "") },
     { provide: PAYMENTS_REPOSITORY, useClass: PgPaymentsRepository },
     PgProcessedEventsRepository,
