@@ -1,7 +1,7 @@
 "use client";
 /** Customer project view (V7.4): project services + readiness from the
  * projects API. Blocked/unblocked reflects the REAL dependency graph state. */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ApiError } from "../../lib/api";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
