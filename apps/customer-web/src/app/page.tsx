@@ -69,7 +69,7 @@ export default function Home() {
       <header className="site-header">
         <a className="brand" href="/" aria-label="DEPUKO home"><span className="brand-mark">D</span><span>DEPUKO</span></a>
         <nav className="header-nav" aria-label="Main navigation">
-          <a href="#categories">Explore services</a><a href="/business">For businesses</a>
+          <a href="#categories">Explore services</a><a href="/assistant">Ask DEPUKO</a><a href="/business">For businesses</a>
         </nav>
         <div className="header-actions"><a className="sign-in" href="/login">Sign in</a><a className="button button-dark header-join" href="/register">Get started <span>↗</span></a></div>
       </header>
@@ -116,7 +116,7 @@ export default function Home() {
       <footer className="site-footer"><a className="brand brand-footer" href="/"><span className="brand-mark">D</span><span>DEPUKO</span></a><span>Ideas meet people who make them real.</span><div><a href="/support">Help</a><a href="/login">Sign in</a><a href="/register">Join DEPUKO</a></div><small>© DEPUKO</small></footer>
 
       <button className="guide-launcher" onClick={() => setGuideOpen(v => !v)} aria-label="Open DEPUKO guide"><span>✦</span><b>Need help?</b></button>
-      {guideOpen && <aside className="guide-panel" aria-label="DEPUKO guide"><div className="guide-head"><span className="guide-avatar">✦</span><div><b>DEPUKO guide</b><small>Guided help</small></div><button onClick={() => setGuideOpen(false)} aria-label="Close guide">×</button></div><div className="guide-body"><p>{guideMessage}</p><div className="guide-prompts"><button onClick={() => guide("Find a provider")}>Find a provider</button><button onClick={() => guide("Help me describe my project")}>Help describe my project</button><button onClick={() => guide("How DEPUKO works")}>How DEPUKO works</button></div></div><form className="guide-input" onSubmit={e => { e.preventDefault(); if (guideInput.trim()) { guide(`I need: ${guideInput.trim()}`); setGuideInput(""); } }}><input value={guideInput} onChange={e => setGuideInput(e.target.value)} placeholder="Tell us what you need…" aria-label="Message DEPUKO guide" /><button aria-label="Send message" disabled={!guideInput.trim()}>↑</button></form></aside>}
+      {guideOpen && <aside className="guide-panel" aria-label="DEPUKO guide"><div className="guide-head"><span className="guide-avatar">✦</span><div><b>DEPUKO guide</b><small>Guided help</small></div><button onClick={() => setGuideOpen(false)} aria-label="Close guide">×</button></div><div className="guide-body"><p>{guideMessage}</p><div className="guide-prompts"><button onClick={() => guide("Find a provider")}>Find a provider</button><button onClick={() => guide("Help me describe my project")}>Help describe my project</button><button onClick={() => guide("How DEPUKO works")}>How DEPUKO works</button><a href="/assistant" className="guide-open-link">Open conversation →</a></div></div><form className="guide-input" onSubmit={e => { e.preventDefault(); if (guideInput.trim()) { guide(`I need: ${guideInput.trim()}`); setGuideInput(""); } }}><input value={guideInput} onChange={e => setGuideInput(e.target.value)} placeholder="Tell us what you need…" aria-label="Message DEPUKO guide" /><button aria-label="Send message" disabled={!guideInput.trim()}>↑</button></form></aside>}
     </main>
   );
 }
