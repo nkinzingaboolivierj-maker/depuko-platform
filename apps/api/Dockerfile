@@ -2,6 +2,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json ./
+COPY tsconfig.base.json ./
 COPY apps ./apps
 COPY packages ./packages
 COPY services ./services
