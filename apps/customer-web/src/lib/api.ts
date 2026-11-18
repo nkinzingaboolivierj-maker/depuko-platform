@@ -24,7 +24,7 @@ async function call<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  searchServices: (capability: string) => call<{ id: string }[]>(`/services?capability=${encodeURIComponent(capability)}`),
+  searchServices: (capability: string) => call<{ definitionId: string; domain: string; category: string; capabilities: string[]; type: string; configuration: Record<string, unknown> }[]>(`/services?capability=${encodeURIComponent(capability)}`),
   createOrder: (body: Record<string, unknown>) => call<{ id: string; status: string }>("/orders", { method: "POST", body: JSON.stringify(body) }),
   listMyOrders: () => call<{ orders: { id: string; status: string; priceCents: number }[] }>("/orders"),
   listBusinessOrders: () => call<{ orders: { id: string; status: string; priceCents: number }[] }>("/orders/business/mine"),
