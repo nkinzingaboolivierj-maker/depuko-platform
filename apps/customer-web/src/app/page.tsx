@@ -21,7 +21,7 @@ export default function Home() {
   const [results, setResults] = useState<Service[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);\n  const [guideInput, setGuideInput] = useState("");
   const [guideMessage, setGuideMessage] = useState("Hi! I can help you describe what you need and search DEPUKO's service catalog. What are you looking for?");
 
   async function search(query = need) {
@@ -111,7 +111,7 @@ export default function Home() {
       <footer className="site-footer"><a className="brand brand-footer" href="/"><span className="brand-mark">D</span><span>DEPUKO</span></a><span>Ideas meet people who make them real.</span><div><a href="/support">Help</a><a href="/login">Sign in</a><a href="/register">Join DEPUKO</a></div><small>© DEPUKO</small></footer>
 
       <button className="guide-launcher" onClick={() => setGuideOpen(v => !v)} aria-label="Open DEPUKO guide"><span>✦</span><b>Need help?</b></button>
-      {guideOpen && <aside className="guide-panel" aria-label="DEPUKO guide"><div className="guide-head"><span className="guide-avatar">✦</span><div><b>DEPUKO guide</b><small>Guided help</small></div><button onClick={() => setGuideOpen(false)} aria-label="Close guide">×</button></div><div className="guide-body"><p>{guideMessage}</p><div className="guide-prompts"><button onClick={() => guide("Find a provider")}>Find a provider</button><button onClick={() => guide("Help me describe my project")}>Help describe my project</button><button onClick={() => guide("How DEPUKO works")}>How DEPUKO works</button></div></div><form className="guide-input" onSubmit={e => { e.preventDefault(); guide("Help me describe my project"); }}><input placeholder="Tell us what you need…" aria-label="Message DEPUKO guide" /><button aria-label="Send message">↑</button></form></aside>}
+      {guideOpen && <aside className="guide-panel" aria-label="DEPUKO guide"><div className="guide-head"><span className="guide-avatar">✦</span><div><b>DEPUKO guide</b><small>Guided help</small></div><button onClick={() => setGuideOpen(false)} aria-label="Close guide">×</button></div><div className="guide-body"><p>{guideMessage}</p><div className="guide-prompts"><button onClick={() => guide("Find a provider")}>Find a provider</button><button onClick={() => guide("Help me describe my project")}>Help describe my project</button><button onClick={() => guide("How DEPUKO works")}>How DEPUKO works</button></div></div><form className="guide-input" onSubmit={e => { e.preventDefault(); if (guideInput.trim()) { guide(`I need: ${guideInput.trim()}`); setGuideInput(""); } }}><input value={guideInput} onChange={e => setGuideInput(e.target.value)} placeholder="Tell us what you need…" aria-label="Message DEPUKO guide" /><button aria-label="Send message" disabled={!guideInput.trim()}>↑</button></form></aside>}
     </main>
   );
 }
