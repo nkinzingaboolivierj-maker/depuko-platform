@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { api, ApiError } from "../../lib/api";
+import { ThemeToggle } from "../../components/ThemeProvider";
 
 const AI_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
 
@@ -69,7 +70,7 @@ export default function AssistantPage() {
 
   return (
     <main className="assistant-page">
-      <header className="assistant-top"><a className="brand" href="/"><span className="brand-mark">D</span><span>DEPUKO</span></a><a href="/" className="assistant-back">← Back to explore</a></header>
+      <header className="assistant-top"><a className="brand" href="/"><span className="brand-mark">D</span><span>DEPUKO</span></a><div className="assistant-top-actions"><ThemeToggle /><a href="/" className="assistant-back">← Back to explore</a></div></header>
       <section className="assistant-shell">
         <div className="assistant-title"><span className="assistant-orb">✦</span><div><h1>Let's make your idea happen.</h1><p>Describe it naturally. We’ll search services and help you take the next step.</p></div></div>
         <div className="assistant-status"><span className="status-dot"/><span>Catalog matching</span><span className="status-divider">·</span><span>AI request guidance</span></div>
