@@ -9,6 +9,7 @@
  * Sensitive modules (finance) only appear for owner/admin/finance roles. */
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "../../lib/api";
+import { ThemeToggle } from "../../components/ThemeProvider";
 
 export default function BusinessWorkspace() {
   const [orgId, setOrgId] = useState("");
@@ -48,7 +49,7 @@ export default function BusinessWorkspace() {
 
   return (
     <main className="workspace-page">
-      <header className="workspace-header"><a className="workspace-brand" href="/"><span>D</span> DEPUKO</a><nav><a href="/business">Workspace</a><a href="/business/orders">Orders</a><a href="/business/services">Services</a><a href="/business/staff">Staff</a></nav><a className="workspace-logout" href="/login">Sign in</a></header>
+      <header className="workspace-header"><a className="workspace-brand" href="/"><span>D</span> DEPUKO</a><nav><a href="/business">Workspace</a><a href="/business/orders">Orders</a><a href="/business/services">Services</a><a href="/business/staff">Staff</a></nav><div className="workspace-header-actions"><ThemeToggle /><a className="workspace-logout" href="/login">Sign in</a></div></header>
       <section className="workspace-heading"><span className="workspace-kicker">BUSINESS OPERATIONS</span><h1>Business workspace</h1><p>Manage your organization, services and daily operations.</p></section>
       <section className="workspace-card"><h2>Organization access</h2><p>Enter your organization ID to load the modules assigned to your business role.</p>
       <input placeholder="Your organization id" value={orgId} onChange={e => setOrgId(e.target.value)} className="workspace-input" aria-label="organization id" />
