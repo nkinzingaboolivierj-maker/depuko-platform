@@ -6,18 +6,19 @@ import { api, ApiError } from "../lib/api";
 type Service = { definitionId: string; domain: string; category: string; capabilities: string[]; type: string; configuration: Record<string, unknown> };
 
 const categories = [
-  { name: "Home & repairs", icon: "🏠", query: "home repair", tint: "mint" },
-  { name: "Design & creative", icon: "🎨", query: "graphic design", tint: "peach" },
-  { name: "Film & photography", icon: "🎬", query: "film production", tint: "lilac" },
-  { name: "Technology", icon: "💻", query: "web development", tint: "blue" },
-  { name: "Events", icon: "🎉", query: "event planning", tint: "pink" },
-  { name: "Transport", icon: "🚚", query: "transport", tint: "yellow" },
+  { name: "Home & repairs", icon: "⌂", query: "home repair", tint: "mint" },
+  { name: "Design & creative", icon: "◇", query: "graphic design", tint: "peach" },
+  { name: "Film & photography", icon: "▣", query: "film production", tint: "lilac" },
+  { name: "Technology", icon: "⌘", query: "web development", tint: "blue" },
+  { name: "Events", icon: "▦", query: "event planning", tint: "pink" },
+  { name: "Transport", icon: "↗", query: "transport", tint: "yellow" },
 ];
 
 const examples = ["Create a short film", "Fix something at home", "Design a logo", "Plan an event"];
 
 export default function Home() {
   const [need, setNeed] = useState("");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [results, setResults] = useState<Service[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,13 +66,13 @@ export default function Home() {
   }
 
   return (
-    <main className="depuko-page">
+    <main className="depuko-page" data-theme={theme}>
       <header className="site-header">
         <a className="brand" href="/" aria-label="DEPUKO home"><span className="brand-mark">D</span><span>DEPUKO</span></a>
         <nav className="header-nav" aria-label="Main navigation">
           <a href="#categories">Explore services</a><a href="/assistant">Ask DEPUKO</a><a href="/business">For businesses</a>
         </nav>
-        <div className="header-actions"><a className="sign-in" href="/login">Sign in</a><a className="button button-dark header-join" href="/register">Get started <span>↗</span></a></div>
+        <div className="header-actions"><button className="theme-toggle" type="button" onClick={() => setTheme(v => v === "light" ? "dark" : "light")} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"} title={theme === "light" ? "Dark mode" : "Light mode"}>{theme === "light" ? "◐" : "☼"}</button><a className="sign-in" href="/login">Sign in</a><a className="button button-dark header-join" href="/register">Get started <span>↗</span></a></div>
       </header>
 
       <section className="hero">
@@ -91,7 +92,7 @@ export default function Home() {
           <div className="art-orbit orbit-one" /><div className="art-orbit orbit-two" />
           <div className="art-card art-card-main"><div className="art-spark">✦</div><div className="art-main-title">Your idea,<br />in motion.</div><div className="art-line" /><div className="art-foot"><span>DEPUKO</span><span>01 / 06</span></div></div>
           <div className="art-float art-float-top"><span className="float-icon">✓</span><span><b>Good things start</b><small>with one idea</small></span></div>
-          <div className="art-float art-float-bottom"><span className="float-emoji">🎥</span><span><b>Creative projects</b><small>Find your team</small></span></div>
+          <div className="art-float art-float-bottom"><span className="float-emoji">▣</span><span><b>Creative projects</b><small>Find your team</small></span></div>
           <div className="art-star star-a">✦</div><div className="art-star star-b">✧</div>
         </div>
       </section>
