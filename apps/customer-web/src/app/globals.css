@@ -115,3 +115,18 @@ main:not(.depuko-page) input:focus,main:not(.depuko-page) textarea:focus,main:no
 .depuko-page[data-theme="dark"] .guide-body p { color:#c0ccda; }
 .depuko-page[data-theme="dark"] .guide-input { border-color:#2a3d54; }
 .depuko-page[data-theme="dark"] .theme-toggle { border-color:#30445c; }
+
+
+/* Shared business workspace */
+.workspace-page{max-width:1440px;margin:0 auto;padding:0 5.2% 60px;min-height:100vh;background:#f7f9fc;color:#10243d;font-family:'DM Sans',system-ui,sans-serif}
+.workspace-header{height:78px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid #e2e8f0}
+.workspace-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#06152a;font-weight:800;letter-spacing:.03em}
+.workspace-brand span{width:34px;height:34px;border-radius:9px;background:#06152a;color:white;display:grid;place-items:center}
+.workspace-header nav{display:flex;gap:24px;flex-wrap:wrap}.workspace-header nav a,.workspace-logout{color:#475569;text-decoration:none;font-size:13px}.workspace-header nav a:hover,.workspace-logout:hover{color:#06152a}
+.workspace-heading{padding:52px 0 24px}.workspace-kicker{font-size:10px;letter-spacing:.16em;font-weight:700;color:#64748b}.workspace-heading h1{font:800 clamp(30px,4vw,42px) Manrope,sans-serif;letter-spacing:-.04em;margin:9px 0}.workspace-heading p{color:#64748b;font-size:14px}
+.workspace-card{background:#fff;border:1px solid #e2e8f0;border-radius:15px;padding:22px;margin:0 0 16px;box-shadow:0 8px 30px #06152a08}.workspace-card h2{font:700 17px Manrope,sans-serif;margin:0 0 8px}.workspace-card p{color:#64748b;font-size:13px;line-height:1.6}
+.workspace-input{border:1px solid #d7e0eb;border-radius:9px;padding:12px 13px;background:white;color:#10243d;max-width:100%;margin:5px}
+.workspace-page button{background:#06152a;color:white;border:0;border-radius:9px;padding:11px 15px;font-weight:600;font-size:12px}
+.workspace-section{margin-top:16px}.workspace-order{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid #e2e8f0;font-size:13px}
+.workspace-order span:first-child{font-weight:600;overflow-wrap:anywhere}.workspace-order span:nth-child(2){color:#64748b}
+@media(max-width:700px){.workspace-page{padding:0 15px 40px}.workspace-header{height:auto;min-height:70px;flex-wrap:wrap;padding:12px 0}.workspace-header nav{order:3;width:100%;gap:15px;overflow:auto}.workspace-heading{padding:35px 0 20px}.workspace-card{padding:16px}}
