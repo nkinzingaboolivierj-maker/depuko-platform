@@ -70,7 +70,7 @@ export default function Home() {
       <header className="site-header">
         <a className="brand" href="/" aria-label="DEPUKO home"><span className="brand-mark">D</span><span>DEPUKO</span></a>
         <nav className="header-nav" aria-label="Main navigation">
-          <a href="#categories">Explore services</a><a href="/assistant">Ask DEPUKO</a><a href="/business">For businesses</a>
+          <a href="#categories">Explore services</a><a href="/assistant">Ask DEPUKO</a><a href="/business">For businesses</a><a href="/worker">For workers</a>
         </nav>
         <div className="header-actions"><ThemeToggle /><a className="sign-in" href="/login">Sign in</a><a className="button button-dark header-join" href="/register">Get started <span>↗</span></a></div>
       </header>
