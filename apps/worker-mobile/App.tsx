@@ -60,7 +60,7 @@ export default function App() {
       <Text style={s.h}>DEPUKO Worker</Text>
       <TextInput style={s.input} placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
       <TextInput style={s.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-      {loading ? <ActivityIndicator /> : <Button title="Sign in" onPress={login} disabled={!email || !password} />}
+      {loading ? <ActivityIndicator /> : <Button title="Sign in" color="#06152A" onPress={login} disabled={!email || !password} />}
       <Text style={s.note}>Use your registered worker account. A verified worker profile is required for opportunities.</Text>
     </View>
   );
@@ -70,7 +70,7 @@ export default function App() {
       <Text style={s.h}>DEPUKO Worker</Text>
       <ScrollView horizontal style={s.tabs} contentContainerStyle={{ gap: 8 }}>
         {(["assignments","profile","safety","opportunities","earnings","training","support"] as Screen[]).map(item =>
-          <Button key={item} title={item[0].toUpperCase()+item.slice(1)} onPress={() => setScreen(item)} />)}
+          <Button key={item} color={screen===item?"#06152A":"#718096"} title={item[0].toUpperCase()+item.slice(1)} onPress={() => setScreen(item)} />)}
       </ScrollView>
       {screen === "assignments" && <View style={{ flex: 1 }}>
         <Text style={s.sub}>My assignments</Text>
@@ -78,12 +78,12 @@ export default function App() {
         <FlatList data={assignments} keyExtractor={a => a.id} renderItem={({ item }) => (
           <View style={s.row}>
             <View style={{ flex: 1 }}><Text>{item.id}</Text><Text>{item.status}</Text></View>
-            {item.status === "offered" && <Button title="Accept" onPress={() => act(item.id, "accept")} />}
-            {item.status === "accepted" && <Button title="Check in" onPress={() => act(item.id, "check-in")} />}
-            {item.status === "checked_in" && <Button title="Check out" onPress={() => act(item.id, "check-out")} />}
+            {item.status === "offered" && <Button title="Accept" color="#06152A" onPress={() => act(item.id, "accept")} />}
+            {item.status === "accepted" && <Button title="Check in" color="#06152A" onPress={() => act(item.id, "check-in")} />}
+            {item.status === "checked_in" && <Button title="Check out" color="#06152A" onPress={() => act(item.id, "check-out")} />}
           </View>
         )} />
-        <Button title="Refresh" onPress={loadAssignments} />
+        <Button title="Refresh" color="#06152A" onPress={loadAssignments} />
       </View>}
       {screen === "profile" && <Profile token={token} />}
       {screen === "safety" && <Safety token={token} />}
@@ -96,12 +96,12 @@ export default function App() {
 }
 
 const s = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12 },
-  wrap: { flex: 1, paddingTop: 48, paddingHorizontal: 16 },
-  h: { fontSize: 22, fontWeight: "700", marginBottom: 10 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12, backgroundColor: "#F5F7FA" },
+  wrap: { flex: 1, paddingTop: 48, paddingHorizontal: 16, backgroundColor: "#F5F7FA" },
+  h: { fontSize: 26, fontWeight: "800", color: "#06152A", marginBottom: 10 },
   sub: { fontSize: 18, fontWeight: "600", marginVertical: 8 },
   tabs: { maxHeight: 44, marginBottom: 8 },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 12, width: 280, borderRadius: 8, marginVertical: 5 },
-  note: { color: "#777", marginTop: 12, textAlign: "center" },
-  row: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
+  input: { borderWidth: 1, borderColor: "#d7e0eb", padding: 13, width: 280, borderRadius: 10, backgroundColor: "#fff", marginVertical: 5 },
+  note: { color: "#64748b", marginTop: 12, textAlign: "center" },
+  row: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#e2e8f0", backgroundColor: "#fff", borderRadius: 10, paddingHorizontal: 12 },
 });
