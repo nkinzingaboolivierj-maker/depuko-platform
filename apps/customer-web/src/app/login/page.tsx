@@ -20,16 +20,16 @@ export default function Login() {
   }
 
   return (
-    <main style={{ maxWidth: 420, margin: "6rem auto", padding: 16, fontFamily: "system-ui" }}>
-      <h1>Sign in</h1>
+    <main className="auth-page"><section className="auth-card"><a className="workspace-brand" href="/"><span>D</span> DEPUKO</a><div className="auth-kicker">WELCOME BACK</div>
+      <h1>Sign in</h1><p className="auth-description">Continue to your DEPUKO workspace.</p>
       <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
-        <input type="email" required placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: 12 }} aria-label="email" />
-        <input type="password" required minLength={8} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: 12 }} aria-label="password" />
-        <button disabled={busy} type="submit" style={{ padding: 12 }}>{busy ? "Signing in..." : "Sign in"}</button>
+        <input type="email" required placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="auth-input" aria-label="email" />
+        <input type="password" required minLength={8} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="auth-input" aria-label="password" />
+        <button disabled={busy} type="submit" className="auth-submit">{busy ? "Signing in..." : "Sign in"}</button>
       </form>
       {error && <p role="alert" style={{ color: "#b00" }}>{error}</p>}
       {ok && <p style={{ color: "#070" }}>Signed in. <Link href="/">Continue</Link></p>}
       <p style={{ marginTop: 16 }}>No account? <Link href="/register">Create one</Link>.</p>
-    </main>
+</section></main>
   );
 }
