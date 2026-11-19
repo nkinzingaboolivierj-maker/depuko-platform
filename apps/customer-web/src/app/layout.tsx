@@ -1,5 +1,6 @@
 import { SessionProvider } from "../lib/session";
 import "./globals.css";
+import "./navy-refresh.css";
 import { ThemeProvider } from "../components/ThemeProvider";
 
 export const metadata = {
