@@ -23,6 +23,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [guideInput, setGuideInput] = useState("");
   const [guideMessage, setGuideMessage] = useState("Hi! I can help you describe what you need and search DEPUKO's service catalog. What are you looking for?");
 
@@ -62,14 +63,15 @@ export default function Home() {
       ? "Tell me the service, where you need it, and when. You can also use the search box to check available providers."
       : prompt === "Help me describe my project"
       ? "Try describing the goal, the style you like, your budget range, and when you need it. Example: ‘I need a 60-second promotional film for my shop in Kigali next month.’"
-      : "DEPUKO helps you discover services, compare providers, and organize requests. Choose a category or tell me what you need. Live AI chat isn't connected yet.");
+      : "DEPUKO helps you discover services, compare providers, and organize requests. Choose a category or tell me what you need. Open DEPUKO AI to continue this conversation.");
   }
 
   return (
     <main className="depuko-page">
       <header className="site-header">
         <a className="brand" href="/" aria-label="DEPUKO home"><span className="brand-mark">D</span><span>DEPUKO</span></a>
-        <nav className="header-nav" aria-label="Main navigation">
+        <button className="nav-collapse-toggle" type="button" aria-expanded={navOpen} aria-controls="customer-main-nav" onClick={() => setNavOpen(v => !v)} aria-label={navOpen ? "Hide navigation" : "Show navigation"}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></button>
+        <nav id="customer-main-nav" className={"header-nav" + (navOpen ? " nav-open" : "")} aria-label="Main navigation">
           <a href="#categories">Explore services</a><a href="/assistant">Ask DEPUKO</a><a href="/business">For businesses</a><a href="/worker">For workers</a>
         </nav>
         <div className="header-actions"><ThemeToggle /><a className="sign-in" href="/login">Sign in</a><a className="button button-dark header-join" href="/register">Get started <span>↗</span></a></div>
