@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ThemeToggle } from "../components/ThemeProvider";
 import { api, ApiError } from "../lib/api";
 
 type Service = { definitionId: string; domain: string; category: string; capabilities: string[]; type: string; configuration: Record<string, unknown> };
@@ -18,7 +19,6 @@ const examples = ["Create a short film", "Fix something at home", "Design a logo
 
 export default function Home() {
   const [need, setNeed] = useState("");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [results, setResults] = useState<Service[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -66,13 +66,13 @@ export default function Home() {
   }
 
   return (
-    <main className="depuko-page" data-theme={theme}>
+    <main className="depuko-page">
       <header className="site-header">
         <a className="brand" href="/" aria-label="DEPUKO home"><span className="brand-mark">D</span><span>DEPUKO</span></a>
         <nav className="header-nav" aria-label="Main navigation">
           <a href="#categories">Explore services</a><a href="/assistant">Ask DEPUKO</a><a href="/business">For businesses</a>
         </nav>
-        <div className="header-actions"><button className="theme-toggle" type="button" onClick={() => setTheme(v => v === "light" ? "dark" : "light")} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"} title={theme === "light" ? "Dark mode" : "Light mode"}>{theme === "light" ? "◐" : "☼"}</button><a className="sign-in" href="/login">Sign in</a><a className="button button-dark header-join" href="/register">Get started <span>↗</span></a></div>
+        <div className="header-actions"><ThemeToggle /><a className="sign-in" href="/login">Sign in</a><a className="button button-dark header-join" href="/register">Get started <span>↗</span></a></div>
       </header>
 
       <section className="hero">
