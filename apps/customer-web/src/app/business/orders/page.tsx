@@ -25,18 +25,17 @@ export default function BusinessOrders() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: 24, fontFamily: "system-ui" }}>
-      <h1>Business - Orders</h1>
+    <main className="workspace-page"><header className="workspace-header"><a className="workspace-brand" href="/"><span>D</span> DEPUKO</a><nav><a href="/business">Workspace</a><a href="/business/orders">Orders</a><a href="/business/services">Services</a><a href="/business/staff">Staff</a></nav><a className="workspace-logout" href="/login">Sign in</a></header><section className="workspace-heading"><span className="workspace-kicker">BUSINESS OPERATIONS</span><h1>Incoming orders</h1><p>Review and manage requests from customers.</p></section><section className="workspace-card">
       {error && <p role="alert" style={{ color: "#b00" }}>{error}</p>}
       <ul>
         {orders?.map(o => (
-          <li key={o.id} style={{ display: "flex", gap: 12, alignItems: "center", padding: 8 }}>
+          <li key={o.id} className="workspace-order">
             <span>{o.id}</span><span>{o.status}</span><span>{(o.priceCents / 100).toLocaleString()} RWF</span>
             {o.status === "pending_payment" && <button onClick={() => act(o.id, "confirm")}>Confirm</button>}
             {["pending_payment", "confirmed"].includes(o.status) && <button onClick={() => act(o.id, "cancel")}>Cancel</button>}
           </li>
         ))}
       </ul>
-    </main>
+      </section></main>
   );
 }
