@@ -130,3 +130,28 @@ main:not(.depuko-page) input:focus,main:not(.depuko-page) textarea:focus,main:no
 .workspace-section{margin-top:16px}.workspace-order{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid #e2e8f0;font-size:13px}
 .workspace-order span:first-child{font-weight:600;overflow-wrap:anywhere}.workspace-order span:nth-child(2){color:#64748b}
 @media(max-width:700px){.workspace-page{padding:0 15px 40px}.workspace-header{height:auto;min-height:70px;flex-wrap:wrap;padding:12px 0}.workspace-header nav{order:3;width:100%;gap:15px;overflow:auto}.workspace-heading{padding:35px 0 20px}.workspace-card{padding:16px}}
+
+/* Persistent light/dark theme across all customer and business routes */
+html[data-theme="dark"] body{background:#08182b;color:#edf2f8}
+html[data-theme="dark"] .depuko-page{background:#08182b;color:#edf2f8}
+html[data-theme="dark"] .site-header,html[data-theme="dark"] .trust-row,html[data-theme="dark"] .site-footer{border-color:#26384e}
+html[data-theme="dark"] .brand,html[data-theme="dark"] .header-nav a,html[data-theme="dark"] .sign-in,html[data-theme="dark"] .site-footer a:not(.brand){color:#d9e2ee}
+html[data-theme="dark"] .hero-sub,html[data-theme="dark"] .section-heading p,html[data-theme="dark"] .trust-row,html[data-theme="dark"] .site-footer,html[data-theme="dark"] .search-hint{color:#a7b4c5}
+html[data-theme="dark"] .search-card,html[data-theme="dark"] .category-card,html[data-theme="dark"] .art-float,html[data-theme="dark"] .guide-panel{background:#10243b;border-color:#2a3d54;color:#edf2f8}
+html[data-theme="dark"] .search-card input,html[data-theme="dark"] .guide-input input{background:transparent;color:#edf2f8}
+html[data-theme="dark"] .example-chips button,html[data-theme="dark"] .guide-prompts button,html[data-theme="dark"] .category-icon{background:#172b43!important;color:#e5edf7!important;border-color:#30445c}
+html[data-theme="dark"] .button-light,html[data-theme="dark"] .theme-toggle{background:#172b43;color:#edf2f8;border-color:#30445c}
+html[data-theme="dark"] .how-section,html[data-theme="dark"] .empty-state,html[data-theme="dark"] .assistant-page{background:#102139}
+html[data-theme="dark"] .provider-cta,html[data-theme="dark"] .art-card-main,html[data-theme="dark"] .guide-head{background:#020b17}
+html[data-theme="dark"] .assistant-shell,html[data-theme="dark"] .workspace-card{background:#10243b;border-color:#2a3d54;color:#edf2f8}
+html[data-theme="dark"] .assistant-title p,html[data-theme="dark"] .assistant-footnote,html[data-theme="dark"] .workspace-heading p,html[data-theme="dark"] .workspace-card p{color:#a7b4c5}
+html[data-theme="dark"] .assistant-status,html[data-theme="dark"] .chat-message.assistant .chat-bubble,html[data-theme="dark"] .starter-prompts button{background:#172b43;color:#e5edf7;border-color:#30445c}
+html[data-theme="dark"] .assistant-compose,html[data-theme="dark"] .workspace-input{background:#0b1c31;color:#edf2f8;border-color:#30445c}
+html[data-theme="dark"] .workspace-page{background:#08182b;color:#edf2f8}
+html[data-theme="dark"] .workspace-header{border-color:#26384e}
+html[data-theme="dark"] .workspace-brand,html[data-theme="dark"] .workspace-header nav a,html[data-theme="dark"] .workspace-logout{color:#d9e2ee}
+html[data-theme="dark"] .workspace-order{border-color:#26384e}
+.workspace-header-actions,.assistant-top-actions{display:flex;align-items:center;gap:14px}
+.theme-toggle{border:1px solid #dce4ee;background:#fff;color:#06152a;border-radius:10px;width:38px;height:38px;display:grid;place-items:center;font-size:16px}
+.theme-toggle:hover{background:#f1f4f8}
+@media(max-width:700px){.workspace-header-actions{margin-left:auto}.assistant-top-actions{gap:9px}}
