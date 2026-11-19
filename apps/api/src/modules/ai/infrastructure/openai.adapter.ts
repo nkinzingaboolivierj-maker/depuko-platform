@@ -6,7 +6,7 @@ import { AiProviderAdapter } from "../ai-provider";
 @Injectable()
 export class OpenAiAdapter implements AiProviderAdapter {
   readonly provider = "openai";
-  readonly model = process.env.OPENAI_MODEL || "gpt-5.5";
+  readonly model = process.env.OPENAI_MODEL || "gpt-6.2-astra";
 
   async complete(params: {
     system: string;
