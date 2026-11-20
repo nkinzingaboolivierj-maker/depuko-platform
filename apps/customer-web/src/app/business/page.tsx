@@ -13,6 +13,16 @@ import { ThemeToggle } from "../../components/ThemeProvider";
 
 export default function BusinessWorkspace() {
   const [orgId, setOrgId] = useState("");
+
+  const [organizations, setOrganizations] = useState<{ id: string; legal_name: string; industry: string; status: string; role: string }[]>([]);
+  const [templates, setTemplates] = useState<{ id: string; label: string }[]>([]);
+  const [templateId, setTemplateId] = useState("");
+  const [legalName, setLegalName] = useState("");
+  const [country, setCountry] = useState("RW");
+  const [industry, setIndustry] = useState("");
+  const [loadingOrganizations, setLoadingOrganizations] = useState(true);
+  const [creatingBusiness, setCreatingBusiness] = useState(false);
+  const [requiresSignIn, setRequiresSignIn] = useState(false);
   const [modules, setModules] = useState<string[] | null>(null);
   const [onboarding, setOnboarding] = useState<{ status: string; progress: number; missingRequired: string[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +48,47 @@ export default function BusinessWorkspace() {
 
   useEffect(() => { if (orgId) { loadWorkspace(orgId); loadOnboarding(orgId); } }, [orgId, loadWorkspace, loadOnboarding]);
 
+  useEffect(() => {
+    let active = true;
+    Promise.all([api.organization.mine(), api.business.templates()])
+      .then(([mine, availableTemplates]) => {
+        if (!active) return;
+        setOrganizations(mine.organizations);
+        setTemplates(availableTemplates);
+        setTemplateId(availableTemplates[0]?.id ?? "");
+        setOrgId(current => mine.organizations.some(org => org.id === current)
+          ? current
+          : mine.organizations[0]?.id ?? "");
+      })
+      .catch(e => {
+        if (!active) return;
+        setRequiresSignIn(e instanceof ApiError && e.status === 401);
+        setError(e instanceof ApiError && e.status === 401
+          ? "Please sign in to access your business workspace."
+          : e instanceof ApiError
+            ? `Could not load business profile (${e.status}).`
+            : "Could not connect to DEPUKO.");
+      })
+      .finally(() => { if (active) setLoadingOrganizations(false); });
+    return () => { active = false; };
+  }, []);
+
+  async function createBusiness(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setCreatingBusiness(true);
+    setError(null);
+    try {
+      const result = await api.business.register({ templateId, legalName, country, industry });
+      const created = { id: result.organizationId, legal_name: legalName, industry, status: result.status, role: "owner" };
+      setOrganizations(current => [created, ...current]);
+      setOrgId(result.organizationId);
+    } catch (e) {
+      setError(e instanceof ApiError ? `Business registration failed (${e.status}): ${e.message}` : "Network error");
+    } finally {
+      setCreatingBusiness(false);
+    }
+  }
+
   async function addBranch(name: string, region: string) {
     try {
       await api.organization.addBranch(orgId, name, region);
@@ -51,8 +102,31 @@ export default function BusinessWorkspace() {
     <main className="workspace-page">
       <header className="workspace-header"><a className="workspace-brand" href="/"><span>D</span> DEPUKO</a><nav><a href="/business">Workspace</a><a href="/business/orders">Orders</a><a href="/business/services">Services</a><a href="/business/staff">Staff</a></nav><div className="workspace-header-actions"><ThemeToggle /><a className="workspace-logout" href="/login">Sign in</a></div></header>
       <section className="workspace-heading"><span className="workspace-kicker">BUSINESS OPERATIONS</span><h1>Business workspace</h1><p>Manage your organization, services and daily operations.</p></section>
-      <section className="workspace-card"><h2>Organization access</h2><p>Enter your organization ID to load the modules assigned to your business role.</p>
-      <input placeholder="Your organization id" value={orgId} onChange={e => setOrgId(e.target.value)} className="workspace-input" aria-label="organization id" />
+      <section className="workspace-card"><h2>Your organization</h2>
+      {loadingOrganizations ? <p>Loading your business profile…</p> : organizations.length > 0 ? (
+        <>
+          <p>Your organizations are securely loaded from your signed-in account.</p>
+          {organizations.length > 1 ? (
+            <select className="workspace-input" value={orgId} onChange={e => setOrgId(e.target.value)} aria-label="Select organization">
+              {organizations.map(org => <option key={org.id} value={org.id}>{org.legal_name} · {org.role}</option>)}
+            </select>
+          ) : <p>{organizations[0].legal_name} · {organizations[0].industry} · {organizations[0].status}</p>}
+        </>
+      ) : requiresSignIn ? (
+        <p><a href="/login">Sign in</a> to access or register a business workspace.</p>
+      ) : (
+        <form onSubmit={createBusiness} style={{ display: "grid", gap: 12, maxWidth: 560 }}>
+          <p>No business is linked to this account yet. Register your organization to create its workspace.</p>
+          <select required className="workspace-input" value={templateId} onChange={e => setTemplateId(e.target.value)} aria-label="Business type">
+            <option value="" disabled>Select a business type</option>
+            {templates.map(template => <option key={template.id} value={template.id}>{template.label}</option>)}
+          </select>
+          <input required className="workspace-input" placeholder="Legal business name" value={legalName} onChange={e => setLegalName(e.target.value)} aria-label="Legal business name" />
+          <input required className="workspace-input" minLength={2} maxLength={2} pattern="[A-Z]{2}" placeholder="Country code (RW)" value={country} onChange={e => setCountry(e.target.value.toUpperCase())} aria-label="Two-letter ISO country code" />
+          <input required className="workspace-input" placeholder="Industry" value={industry} onChange={e => setIndustry(e.target.value)} aria-label="Industry" />
+          <button type="submit" disabled={creatingBusiness || !templateId}>{creatingBusiness ? "Creating workspace…" : "Register business"}</button>
+        </form>
+      )}
       {error && <p role="alert" style={{ color: "#b00" }}>{error}</p>}
       {onboarding && (
         <section className="workspace-card workspace-section">
