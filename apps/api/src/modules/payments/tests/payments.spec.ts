@@ -49,6 +49,15 @@ describe("Payments (S56 + S39)", () => {
     expect(settlementCalls).toEqual(["atomic-1"]);
     expect(eventCalls).toEqual([]);
   });
+  it("allows a provider-confirmed capture to settle an intent directly from created", () => {
+    const intent = new PaymentIntent("pi-created", "order-1", 1000, "RWF", "provider");
+    intent.settle();
+    expect(intent.status).toBe("settled");
+  });
+  it("rejects unsupported payment state transitions", () => {
+    const intent = new PaymentIntent("pi-invalid", "order-1", 1000, "RWF", "provider");
+    expect(() => intent.transitionTo("refunded")).toThrow(/illegal/);
+  });
   it("missing provider secret disables the rail without blocking boot", () => {
     const off = new WebhookProcessor("");
     expect(off.disabled).toBe(true);
@@ -56,7 +65,6 @@ describe("Payments (S56 + S39)", () => {
   });
   it("payment + refund state machines reject illegal moves", () => {
     const pi = new PaymentIntent("pi1", "o1", 1000, "RWF", "test");
-    expect(() => pi.settle()).toThrow(/illegal/);
     pi.transitionTo("pending");
     pi.transitionTo("authorized");
     pi.settle();
