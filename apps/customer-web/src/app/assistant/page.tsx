@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { api, ApiError } from "../../lib/api";
 import { ThemeToggle } from "../../components/ThemeProvider";
 
-const AI_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
+const AI_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://depuko-api-production.up.railway.app/api/v1";
 
 type Service = { definitionId: string; domain: string; category: string; capabilities: string[]; type: string; configuration: Record<string, unknown> };
 type Message = { id: number; role: "user" | "assistant"; text: string; results?: Service[] };
