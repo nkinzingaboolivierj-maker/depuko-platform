@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "../../../lib/api";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
+const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://depuko-api-production.up.railway.app/api/v1";
 
 async function req<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const res = await fetch(BASE + path, {
