@@ -16,12 +16,12 @@ export default function Admin() {
     try {
       const balance = await adminApi.balanceCheck(token);
       messages.push(balance.healthy
-        ? `Finance integrity healthy — ${balance.checked} transactions checked`
+        ? "Finance integrity healthy — " + balance.checked + " transactions checked"
         : "Finance imbalance detected — review required");
     } catch { messages.push("Finance check unavailable — verify finance:read permission"); }
     try {
       const integrations = await adminApi.integrationHealth(token);
-      integrations.forEach(item => messages.push(`Integration ${item.kind}/${item.provider}: ${item.enabled ? "enabled" : "disabled"}`));
+      integrations.forEach(item => messages.push("Integration " + item.kind + "/" + item.provider + ": " + (item.enabled ? "enabled" : "disabled")));
     } catch { messages.push("Integration registry unavailable — verify integrations:manage permission"); }
     setStatus(messages);
     setLoading(false);
@@ -35,6 +35,7 @@ export default function Admin() {
         <a aria-current="page" href="/">Overview</a>
         <a href="/command-center">Command center</a>
         <a href="/operations">Operations</a>
+        <a href="/pricing">Fees & plans</a>
         <a href="https://depuko-platform-mainnn.vercel.app">Customer platform</a>
       </nav>
       <div className="admin-sidebar-foot">DEPUKO CONTROL PLANE<br/>Sensitive actions require authorization and human review.</div>
@@ -50,6 +51,7 @@ export default function Admin() {
       <section className="admin-section admin-grid">
         <Link className="admin-card admin-link-card" href="/command-center"><div><strong>Command center</strong><span>System health, integrations, finance checks and trust actions.</span></div><b className="admin-link-arrow">Open</b></Link>
         <Link className="admin-card admin-link-card" href="/operations"><div><strong>Operations</strong><span>Measured order analytics and operational controls.</span></div><b className="admin-link-arrow">Open</b></Link>
+        <Link className="admin-card admin-link-card" href="/pricing"><div><strong>Fees & subscriptions</strong><span>Configure separate registration fees and recurring plans by account category.</span></div><b className="admin-link-arrow">Open</b></Link>
       </section>
       <section className="admin-section admin-card">
         <h2>Quick system checks</h2><p>Run permission-gated checks using your verified administrator session.</p>
@@ -58,7 +60,7 @@ export default function Admin() {
       </section>
       <section className="admin-section admin-grid three">
         <article className="admin-card"><h2>People & trust</h2><p>Worker verification and account restrictions require human review.</p></article>
-        <article className="admin-card"><h2>Money</h2><p>Real-money payment flows remain disabled pending webhook and ledger verification.</p></article>
+        <article className="admin-card"><h2>Money</h2><p>Real-money payment flows remain disabled pending provider integration and end-to-end verification.</p></article>
         <article className="admin-card"><h2>Payroll</h2><p>Unavailable until reviewed country-specific rules are configured.</p></article>
       </section>
     </main>

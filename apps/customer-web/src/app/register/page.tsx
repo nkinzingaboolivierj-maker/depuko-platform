@@ -33,7 +33,7 @@ export default function Register() {
         <button disabled={busy} type="submit" className="auth-submit">{busy ? "Creating..." : "Create account"}</button>
       </form>
       {error && <p role="alert" style={{ color: "#b00" }}>{error}</p>}
-      {ok && <p>Account created. Continue to your workspace.</p>}
+      {ok && <p>Account created. <Link href="/billing">Review registration fees and subscription plans</Link>.</p>}
       <p style={{ marginTop: 16 }}>Already registered? <Link href="/login">Sign in</Link>.</p>
     </section></main>
   );
