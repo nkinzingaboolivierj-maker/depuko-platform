@@ -35,6 +35,7 @@ export const api = {
   register: (body: Record<string, unknown>) => call<{ sessionToken?: string }>("/auth/register", { method: "POST", body: JSON.stringify(body) }),
   login: (body: Record<string, unknown>) => call<{ sessionToken?: string }>("/auth/login", { method: "POST", body: JSON.stringify(body) }),
   organization: {
+    mine: () => call<{ organizations: { id: string; business_type: string; legal_name: string; country: string; industry: string; status: string; role: string }[] }>("/organizations/mine"),
     workspace: (orgId: string) => call<{ modules: string[] }>(`/organizations/${orgId}/workspace`),
     addBranch: (orgId: string, name: string, region: string) => call<{ created: boolean }>(`/organizations/${orgId}/branches`, { method: "POST", body: JSON.stringify({ name, region }) }),
     inviteMember: (orgId: string, userId: string, role: string) => call<{ invited: boolean }>(`/organizations/${orgId}/members`, { method: "POST", body: JSON.stringify({ userId, role }) }),
