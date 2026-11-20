@@ -63,7 +63,7 @@ export default function BusinessServices() {
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: 24, fontFamily: "system-ui" }}>
       <h1>Business - Services</h1>
-      {organizations.length > 1 ? <select value={orgId} onChange={e => setOrgId(e.target.value)} aria-label="Select organization" style={{ padding: 12, width: "100%", maxWidth: 420 }}>{organizations.map(org => <option key={org.id} value={org.id}>{org.legal_name} · {org.role}</option>)}</select> : organizations.length === 1 ? <p>{organizations[0].legal_name} · {organizations[0].role}</p> : <p>No organization found. <a href="/business">Open business workspace</a>.</p>
+      {organizations.length > 1 ? <select value={orgId} onChange={e => setOrgId(e.target.value)} aria-label="Select organization" style={{ padding: 12, width: "100%", maxWidth: 420 }}>{organizations.map(org => <option key={org.id} value={org.id}>{org.legal_name} · {org.role}</option>)}</select> : organizations.length === 1 ? <p>{organizations[0].legal_name} · {organizations[0].role}</p> : <p>No organization found. <a href="/business">Open business workspace</a>.</p>}
       <div style={{ display: "grid", gap: 8, maxWidth: 360, marginTop: 16 }}>
         <input placeholder="Service name (e.g. Home cleaning - 5h)" value={name} onChange={e => setName(e.target.value)} style={{ padding: 12 }} aria-label="service name" />
         <input placeholder="Price (RWF)" type="number" value={price} onChange={e => setPrice(e.target.value)} style={{ padding: 12 }} aria-label="price" />
