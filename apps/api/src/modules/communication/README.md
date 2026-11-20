@@ -1,10 +1,10 @@
-# communication module
+# Communication module
 
-Scoped chat: project, job, customer-worker, partner, support, internal (§43).
+Scoped conversations are implemented with participant checks:
 
-**Status:** not yet implemented (Phase per §98 TBD). Follow the
-presentation/application/domain/infrastructure/tests layering used by
-`auth` and `services` when building this out. Before writing code, run
-through the New Feature Protocol (§94) and, if this module needs to represent
-something the Universal Service Engine could instead configure, the New
-Service Protocol (§95).
+- Customer/worker conversations require an order assignment relationship.
+- Project-team conversations require every participant to be a member of the same organization.
+- Support conversations require exactly one administrator and one requester.
+- Conversation and message reads/writes are participant-scoped in the repository.
+
+Production acceptance still requires HTTP E2E tests for each scope and tenant-isolation cases.
