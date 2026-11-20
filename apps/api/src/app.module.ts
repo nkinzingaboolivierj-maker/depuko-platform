@@ -34,12 +34,13 @@ import { OpportunitiesModule } from "./modules/opportunities/opportunities.modul
 import { QuotesModule } from "./modules/quotes/quotes.module";
 import { SecurityModule } from "./modules/security/security.module";
 import { BillingModule } from "./modules/billing/billing.module";
+import { TrainingModule } from "./modules/training/training.module";
 
 @Module({
   imports: [
     DatabaseModule, AuditModule, AuthModule, SecurityModule, ServicesModule, QuotesModule,
     OrdersModule, FinanceModule, PaymentsModule, ProjectsModule,
-    OrganizationsModule, BusinessOnboardingModule, BillingModule,
+    OrganizationsModule, BusinessOnboardingModule, BillingModule, TrainingModule,
     CustomersModule, WorkforceModule, CommunicationModule, NotificationsModule,
     SchedulingModule, DispatchModule, ContractsModule, InventoryModule, AssetsModule,
     AiModule, HealthModule, LogisticsModule, PayrollModule, FilesModule, SupportModule,

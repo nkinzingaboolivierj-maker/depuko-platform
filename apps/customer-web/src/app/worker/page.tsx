@@ -167,7 +167,7 @@ export default function WorkerPortal() {
 
   const nav = [{id:"overview",label:"Overview"},{id:"profile",label:"Profile"},{id:"opportunities",label:"Find work"},{id:"applications",label:"Applications"},{id:"earnings",label:"Earnings"},{id:"skills",label:"Skills"},{id:"support",label:"Support"}];
   return <main className="worker-page">
-    <header className="worker-header"><a className="workspace-brand" href="/"><span>D</span> DEPUKO</a><div className="workspace-header-actions"><ThemeToggle/><button className="workspace-logout" onClick={logout}>Sign out</button></div></header>
+    <header className="worker-header"><a className="workspace-brand" href="/"><span>D</span> DEPUKO</a><div className="workspace-header-actions"><ThemeToggle/><a className="workspace-logout" href="/worker/training">Training</a><button className="workspace-logout" onClick={logout}>Sign out</button></div></header>
     <div className="worker-shell">
       <section className="worker-heading"><div className="workspace-kicker">WORKER WORKSPACE</div><h1>{profile?.headline || "Your professional workspace"}</h1><p>Manage your work profile, find opportunities and keep track of your progress.</p></section>
       <nav aria-label="Worker navigation" style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:18}}>{nav.map(item=><button key={item.id} onClick={()=>setTab(item.id)} aria-current={tab===item.id?"page":undefined} style={{background:tab===item.id?"#06152a":"transparent",color:tab===item.id?"#fff":"var(--ink)",border:"1px solid var(--line)"}}>{item.label}</button>)}</nav>

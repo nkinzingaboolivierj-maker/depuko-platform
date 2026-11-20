@@ -52,6 +52,7 @@ export default function Admin() {
         <Link className="admin-card admin-link-card" href="/command-center"><div><strong>Command center</strong><span>System health, integrations, finance checks and trust actions.</span></div><b className="admin-link-arrow">Open</b></Link>
         <Link className="admin-card admin-link-card" href="/operations"><div><strong>Operations</strong><span>Measured order analytics and operational controls.</span></div><b className="admin-link-arrow">Open</b></Link>
         <Link className="admin-card admin-link-card" href="/pricing"><div><strong>Fees & subscriptions</strong><span>Configure separate registration fees and recurring plans by account category.</span></div><b className="admin-link-arrow">Open</b></Link>
+        <Link className="admin-card admin-link-card" href="/training"><div><strong>Worker training</strong><span>Create learning resources and track worker course completion.</span></div><b className="admin-link-arrow">Open</b></Link>
       </section>
       <section className="admin-section admin-card">
         <h2>Quick system checks</h2><p>Run permission-gated checks using your verified administrator session.</p>
