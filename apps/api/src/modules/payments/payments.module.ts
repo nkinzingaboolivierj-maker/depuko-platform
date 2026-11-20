@@ -14,7 +14,7 @@ import { AuthGuard } from "../security/infrastructure/guards/auth.guard";
 import { SecurityModule } from "../security/security.module";
 import { PgProcessedEventsRepository } from "./infrastructure/pg-processed-events.repository";
 import { PgPaymentsRepository } from "./infrastructure/pg-payments.repository";
-import { PAYMENTS_REPOSITORY } from "./domain/payments.repository.port";
+import { PAYMENTS_REPOSITORY, PaymentsRepositoryPort } from "./domain/payments.repository.port";
 import { FinanceModule } from "../finance/finance.module";
 import { PostLedgerTransactionUseCase } from "../finance/application/post-ledger-transaction.use-case";
 
@@ -35,9 +35,9 @@ const useInMemory = process.env.NODE_ENV === "test";
     },
     {
       provide: ProcessWebhookUseCase,
-      useFactory: (processor: WebhookProcessor, postLedger: PostLedgerTransactionUseCase, events: PgProcessedEventsRepository) =>
-        new ProcessWebhookUseCase(processor, postLedger, events),
-      inject: [WebhookProcessor, PostLedgerTransactionUseCase, PgProcessedEventsRepository],
+      useFactory: (processor: WebhookProcessor, postLedger: PostLedgerTransactionUseCase, events: PgProcessedEventsRepository, payments: PaymentsRepositoryPort) =>
+        new ProcessWebhookUseCase(processor, postLedger, events, payments),
+      inject: [WebhookProcessor, PostLedgerTransactionUseCase, PgProcessedEventsRepository, PAYMENTS_REPOSITORY],
     },
   ],
   controllers: [PaymentsController, PaymentIntentsController, PayoutsController],

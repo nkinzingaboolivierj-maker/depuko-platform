@@ -21,12 +21,17 @@ export class PaymentsController {
   async webhook(
     @Param("orderId") orderId: string,
     @Headers("x-webhook-signature") sig: string,
-    @Body() body: { eventId: string; outcome: "settled" | "failed" | "cancelled" | "disputed"; amountCents: number; providerReference?: string },
+    @Body() body: { eventId: string; intentId: string; outcome: "settled" | "failed" | "cancelled" | "disputed"; amountCents: number; providerReference?: string },
   ) {
     if (this.processor.disabled) throw new HttpException(this.processor.disabledReason ?? "integration disabled", HttpStatus.SERVICE_UNAVAILABLE);
-    if (!body?.eventId || !Number.isSafeInteger(body.amountCents) || body.amountCents <= 0) throw new HttpException("invalid webhook payload", HttpStatus.BAD_REQUEST);
+    if (!body?.eventId || body.eventId.length > 200 || !body.intentId || body.intentId.length > 200 ||
+      !["settled", "failed", "cancelled", "disputed"].includes(body.outcome) ||
+      !Number.isSafeInteger(body.amountCents) || body.amountCents <= 0 ||
+      (body.providerReference !== undefined && (typeof body.providerReference !== "string" || body.providerReference.length > 256))) {
+      throw new HttpException("invalid webhook payload", HttpStatus.BAD_REQUEST);
+    }
     const result = await this.processWebhook.execute({
-      event: { eventId: body.eventId, orderId, outcome: body.outcome, amountCents: body.amountCents },
+      event: { eventId: body.eventId, orderId, intentId: body.intentId, outcome: body.outcome, amountCents: body.amountCents, providerReference: body.providerReference },
       signature: sig,
     });
     if (result.status === "disabled") throw new HttpException("integration disabled", HttpStatus.SERVICE_UNAVAILABLE);
@@ -35,8 +40,7 @@ export class PaymentsController {
     return { orderId, status: result.status };
   }
 
-  /** A customer may request (not execute) a refund only for their own captured payment.
-   * Execution/approval remains an admin + provider workflow, separate from this request. */
+  /** A customer may request (not execute) a refund only for their own captured payment. */
   @Post("intents/:intentId/refunds")
   @UseGuards(AuthGuard)
   async requestRefund(
@@ -57,7 +61,7 @@ export class PaymentsController {
       "SELECT COALESCE(SUM(amount_cents),0) AS refunded FROM refunds WHERE payment_intent_id=$1 AND status <> 'rejected'", [intentId]);
     const remaining = Number(payment.amount_cents) - Number(existing[0]?.refunded ?? 0);
     if (body.amountCents > remaining) throw new HttpException("refund exceeds remaining captured amount", HttpStatus.BAD_REQUEST);
-    await this.payments.requestRefund({ id: `rf_${randomUUID()}`, intentId, paymentId: payment.id, amountCents: body.amountCents, currency: intent.currency, reason: body.reason });
+    await this.payments.requestRefund({ id: "rf_" + randomUUID(), intentId, paymentId: payment.id, amountCents: body.amountCents, currency: intent.currency, reason: body.reason });
     return { requested: true, intentId, amountCents: body.amountCents, status: "requested" };
   }
 
