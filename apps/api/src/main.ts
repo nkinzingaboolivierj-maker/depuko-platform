@@ -10,8 +10,17 @@ async function bootstrap() {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+  // Production must never fall back to a wildcard/reflection-style CORS
+  // policy. If no allow-list is configured, browsers cannot make cross-origin
+  // requests; same-origin traffic remains unaffected.
+  const corsOrigin: string[] | boolean = allowedOrigins.length
+    ? allowedOrigins
+    : process.env.NODE_ENV === 'production'
+      ? false
+      : true;
+
   app.enableCors({
-    origin: allowedOrigins.length ? allowedOrigins : true,
+    origin: corsOrigin,
     credentials: true,
   });
 
