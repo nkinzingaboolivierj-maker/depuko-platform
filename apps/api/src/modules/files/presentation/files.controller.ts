@@ -2,7 +2,7 @@ import { createHash, createHmac, randomUUID } from "node:crypto";
 import { BadRequestException, ConflictException, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, Post, Req, UseGuards, Body, ForbiddenException } from "@nestjs/common";
 import { DatabaseService } from "../../../infrastructure/database/database.service";
 import { AuthGuard } from "../../security/infrastructure/guards/auth.guard";
-import { FileObject, ALLOWED_MIME, MAX_BYTES } from "../domain/file-object";
+import { FileObject, ALLOWED_MIME } from "../domain/file-object";
 
 type StorageConfig = { endpoint: URL; bucket: string; accessKey: string; secretKey: string; region: string };
 type FileRow = { id: string; owner_id: string; mime_type: string; size_bytes: string | number; status: string; document_of: string | null; storage_key: string | null };
