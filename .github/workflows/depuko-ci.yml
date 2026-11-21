@@ -3,9 +3,6 @@ name: DEPUKO CI
 on:
   pull_request:
     branches: [main]
-  push:
-    branches:
-      - release/navy-refresh-main-sync
   workflow_dispatch:
 
 permissions:
@@ -13,7 +10,7 @@ permissions:
 
 concurrency:
   group: depuko-ci-${{ github.head_ref || github.ref_name }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   verify:
