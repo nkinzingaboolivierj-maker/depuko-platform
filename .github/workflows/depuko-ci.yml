@@ -9,10 +9,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: depuko-ci-${{ github.ref }}
+  group: depuko-ci-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -37,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -49,7 +51,12 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile
+          fi
 
       - name: Upload generated pnpm lockfile
         uses: actions/upload-artifact@v4
@@ -58,6 +65,19 @@ jobs:
           path: pnpm-lock.yaml
           if-no-files-found: error
           retention-days: 7
+
+      - name: Commit generated pnpm lockfile to the release branch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ -n "$(git status --porcelain pnpm-lock.yaml)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add pnpm-lock.yaml
+            git commit -m "chore: commit generated pnpm lockfile"
+            git push origin "HEAD:${BRANCH}"
+          fi
 
       - name: Verify fresh and upgrade database migrations
         env:
