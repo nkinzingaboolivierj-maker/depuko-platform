@@ -51,7 +51,7 @@ export class AuthController {
     return { token: session.id, sessionToken: session.id, expiresAt: session.expiresAt };
   }
 
-  private validateCredentials(body: { email: string; password: string } | undefined) {
+  private validateCredentials(body: { email: string; password: string; accountType?: "customer" | "worker" } | undefined) {
     const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body?.password === "string" ? body.password : "";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new BadRequestException("valid email is required");
