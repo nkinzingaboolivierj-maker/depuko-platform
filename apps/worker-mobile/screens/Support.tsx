@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
 
-const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
+const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? "https://depuko-api-production.up.railway.app/api/v1";
 
 export default function Support({ token }: { token: string }) {
   const [category, setCategory] = useState("general");
