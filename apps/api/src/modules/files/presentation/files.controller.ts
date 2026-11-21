@@ -4,7 +4,7 @@ import { DatabaseService } from "../../../infrastructure/database/database.servi
 import { AuthGuard } from "../../security/infrastructure/guards/auth.guard";
 import { FileObject, ALLOWED_MIME } from "../domain/file-object";
 
-type StorageConfig = { endpoint: URL; bucket: string; accessKey: string; secretKey: string; region: string };
+export type StorageConfig = { endpoint: URL; bucket: string; accessKey: string; secretKey: string; region: string; urlStyle: "virtual-hosted" | "path" };
 type FileRow = { id: string; owner_id: string; mime_type: string; size_bytes: string | number; status: string; document_of: string | null; storage_key: string | null };
 
 function encode(value: string): string {
@@ -21,19 +21,27 @@ function storageConfig(): StorageConfig | null {
   if(!endpointValue||!bucket||!accessKey||!secretKey)return null;
   const endpoint=new URL(endpointValue);
   if(endpoint.protocol!=="https:")throw new Error("STORAGE_ENDPOINT must use HTTPS");
-  return {endpoint,bucket,accessKey,secretKey,region:process.env.STORAGE_REGION??"auto"};
+  const urlStyle=process.env.STORAGE_URL_STYLE??"virtual-hosted";
+  if(urlStyle!=="virtual-hosted"&&urlStyle!=="path")throw new Error("STORAGE_URL_STYLE must be virtual-hosted or path");
+  return {endpoint,bucket,accessKey,secretKey,region:process.env.STORAGE_REGION??"auto",urlStyle};
 }
 
 /** AWS Signature V4 presigning for S3-compatible PUT/GET/HEAD requests. */
-function presign(config:StorageConfig,method:"PUT"|"GET"|"HEAD",key:string,expires:number,contentType?:string):string {
+export function presign(config:StorageConfig,method:"PUT"|"GET"|"HEAD",key:string,expires:number,contentType?:string):string {
   const now=new Date();
   const amzDate=now.toISOString().replace(/[:-]|\.\d{3}/g,"");
   const dateStamp=amzDate.slice(0,8);
   const scope=dateStamp+"/"+config.region+"/s3/aws4_request";
   const prefix=config.endpoint.pathname.replace(/\/+$/,"");
   const keyPath=key.split("/").map(encode).join("/");
-  const canonicalUri=prefix+"/"+encode(config.bucket)+"/"+keyPath;
   const url=new URL(config.endpoint.toString());
+  let canonicalUri:string;
+  if(config.urlStyle==="virtual-hosted"){
+    if(!url.hostname.toLowerCase().startsWith(config.bucket.toLowerCase()+"."))url.hostname=config.bucket+"."+url.hostname;
+    canonicalUri=prefix+"/"+keyPath;
+  }else{
+    canonicalUri=prefix+"/"+encode(config.bucket)+"/"+keyPath;
+  }
   url.pathname=canonicalUri;
   const host=url.host;
   const signedHeaders=contentType?"content-type;host":"host";
