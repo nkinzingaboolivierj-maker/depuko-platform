@@ -13,13 +13,27 @@ permissions:
 
 concurrency:
   group: depuko-ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   verify:
-    name: Install, typecheck, build and API unit tests
+    name: Install, database migrations, typecheck, build and API tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: depuko
+          POSTGRES_PASSWORD: depuko_ci
+          POSTGRES_DB: depuko_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U depuko -d depuko_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,10 +51,52 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: TypeScript checks
+      - name: Verify fresh and upgrade database migrations
+        env:
+          PGPASSWORD: depuko_ci
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: depuko
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+          createdb depuko_fresh
+          createdb depuko_upgrade
+
+          for migration in database/migrations/*.sql; do
+            echo "Fresh database: applying $migration"
+            psql -d depuko_fresh -v ON_ERROR_STOP=1 -f "$migration"
+          done
+
+          for migration in database/migrations/*.sql; do
+            filename="$(basename "$migration")"
+            prefix="${filename%%_*}"
+            number=$((10#$prefix))
+            if [ "$number" -le 16 ]; then
+              echo "Upgrade database baseline: applying $filename"
+              psql -d depuko_upgrade -v ON_ERROR_STOP=1 -f "$migration"
+            fi
+          done
+
+          for migration in database/migrations/*.sql; do
+            filename="$(basename "$migration")"
+            prefix="${filename%%_*}"
+            number=$((10#$prefix))
+            if [ "$number" -ge 17 ]; then
+              echo "Upgrade database: applying $filename"
+              psql -d depuko_upgrade -v ON_ERROR_STOP=1 -f "$migration"
+            fi
+          done
+
+          for database in depuko_fresh depuko_upgrade; do
+            psql -d "$database" -v ON_ERROR_STOP=1 -c "SELECT to_regclass('public.users'), to_regclass('public.payment_intents'), to_regclass('public.billing_catalog_items'), to_regclass('public.training_courses'), to_regclass('public.file_objects');"
+          done
+
+      - name: TypeScript checks (including worker mobile)
         run: pnpm typecheck
 
-      - name: Build workspace applications
+      - name: Build workspace applications (including Android bundle)
         run: pnpm build
 
       - name: API unit tests
