@@ -5,7 +5,7 @@
  * says so honestly instead of silently queueing. Sync status is shown
  * truthfully. No continuous location tracking is implemented - deliberate.
  */
-import { AsyncStorage } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface QueuedAction {
   clientRequestId: string;
