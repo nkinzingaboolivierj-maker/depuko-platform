@@ -32,7 +32,7 @@ export class TrainingController {
   async createCourse(@Req() req: { userId: string }, @Body() body: { title: string; summary?: string; contentUrl?: string; durationMinutes: number }) {
     if (!body?.title?.trim() || body.title.trim().length < 3 || body.title.length > 160) throw new BadRequestException("course title must contain 3-160 characters");
     if (!Number.isSafeInteger(body.durationMinutes) || body.durationMinutes < 1 || body.durationMinutes > 100000) throw new BadRequestException("durationMinutes must be a positive integer");
-    if (body.contentUrl && !/^https:\\/\\//i.test(body.contentUrl)) throw new BadRequestException("course content URL must use HTTPS");
+    if (body.contentUrl && !/^https:\/\//i.test(body.contentUrl)) throw new BadRequestException("course content URL must use HTTPS");
     const id = "course_" + randomUUID();
     await this.db.query(
       "INSERT INTO training_courses (id,title,summary,content_url,duration_minutes,created_by) VALUES ($1,$2,$3,$4,$5,$6)",
