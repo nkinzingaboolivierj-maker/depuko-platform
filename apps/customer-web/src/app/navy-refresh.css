@@ -22,3 +22,23 @@ html[data-theme="dark"] .assistant-shell{background:#10243b;border-color:#2a3d54
 html[data-theme="dark"] .assistant-status,html[data-theme="dark"] .chat-message.assistant .chat-bubble,html[data-theme="dark"] .starter-prompts button{background:#172b43;color:#e5edf7;border-color:#30445c}
 html[data-theme="dark"] .chat-result{background:#10243b;border-color:#30445c;color:#edf2f8}
 html[data-theme="dark"] .assistant-compose{background:#0b1c31;border-color:#30445c}
+
+/* Strict DEPUKO navy/white palette: remove legacy green and pastel accents. */
+:root{--ink:#10243d;--muted:#64748b;--green:#06152A;--lime:#FFFFFF;--line:#dbe3ef;--paper:#f5f7fa;--navy:#06152A;--navy-2:#0b2040;--surface:#FFFFFF;--page:#f5f7fa}
+body{background:var(--page);color:var(--ink)}
+.brand-mark,.button-dark,.search-submit,.art-card-main,.provider-cta,.guide-launcher,.guide-head,.guide-input button{background:#06152A!important;color:#FFFFFF!important}
+.button-white{background:#FFFFFF!important;color:#06152A!important}
+.eyebrow,.hero h1 span,.text-link,.category-arrow,.trust-row div span,.step-icon,.art-spark,.art-star,.empty-icon{color:#06152A}
+.eyebrow-dot,.float-icon,.category-icon,.mint,.peach,.lilac,.blue,.pink,.yellow,.result-art,.chat-result-icon{background:#f1f4f8!important;color:#06152A!important}
+.art-float,.search-card,.example-chips button,.category-card,.result-card,.guide-panel,.guide-prompts button{background:#FFFFFF}
+.how-section,.empty-state{background:#f5f7fa}
+.provider-cta .eyebrow{color:#FFFFFF}
+.provider-cta p,.art-foot{color:#e6ebf2}
+.art-card-main:after{border-color:#ffffff22}
+.guide-avatar{background:#FFFFFF;color:#06152A}
+.guide-head small{color:#e6ebf2}
+.result-art{background:#f1f4f8!important}
+:root[data-theme=dark] .category-icon,:root[data-theme=dark] .float-icon,:root[data-theme=dark] .result-art,:root[data-theme=dark] .chat-result-icon{background:#1b304a!important;color:#FFFFFF!important}
+:root[data-theme=dark] .how-section,:root[data-theme=dark] .empty-state{background:#0b1d36}
+:root[data-theme=dark] .guide-head,:root[data-theme=dark] .guide-launcher,:root[data-theme=dark] .provider-cta,:root[data-theme=dark] .art-card-main{background:#06152A!important}
+:root[data-theme=dark] .art-spark,:root[data-theme=dark] .art-star,:root[data-theme=dark] .step-icon,:root[data-theme=dark] .text-link,:root[data-theme=dark] .trust-row div span{color:#FFFFFF}
