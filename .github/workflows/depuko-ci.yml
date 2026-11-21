@@ -51,6 +51,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Upload generated pnpm lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: depuko-pnpm-lockfile
+          path: pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Verify fresh and upgrade database migrations
         env:
           PGPASSWORD: depuko_ci
