@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Button, FlatList, StyleSheet, Text, View } from "react-native";
-const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
+const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? "https://depuko-api-production.up.railway.app/api/v1";
 interface Opportunity { id: string; role: string; region: string; required_skills: string[]; compensation_cents: string | number; duration_days: number }
 export default function Opportunities({ token }: { token: string }) {
   const [items, setItems] = useState<Opportunity[] | null>(null);
