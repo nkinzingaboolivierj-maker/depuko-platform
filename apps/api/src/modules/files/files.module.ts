@@ -1,7 +1,14 @@
 import { Module } from "@nestjs/common";
+import { AuthModule } from "../auth/auth.module";
+import { UsersModule } from "../users/users.module";
+import { SecurityModule } from "../security/security.module";
+import { AuthGuard } from "../security/infrastructure/guards/auth.guard";
+import { FilesController } from "./presentation/files.controller";
 
-/** PHASE 4: lifecycle implemented + tested. The malware scanner adapter and
- * object storage are BLOCKED BY EXTERNAL DEPENDENCY (owner accounts); with
- * no scanner configured every file stays scan_unavailable - never "safe". */
-@Module({})
+/** Private S3-compatible storage and fail-closed malware scanning. */
+@Module({
+  imports: [SecurityModule, AuthModule, UsersModule],
+  controllers: [FilesController],
+  providers: [AuthGuard],
+})
 export class FilesModule {}

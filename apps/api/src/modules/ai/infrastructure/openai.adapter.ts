@@ -1,10 +1,11 @@
-import { Injectable, ServiceUnavailableException } from "@nestjs/common";
+import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { AiProviderAdapter } from "../ai-provider";
 
 /** Server-side OpenAI Responses API adapter. The API key is read only from
  * Railway environment variables and is never returned to clients. */
 @Injectable()
 export class OpenAiAdapter implements AiProviderAdapter {
+  private readonly logger = new Logger(OpenAiAdapter.name);
   readonly provider = "openai";
   readonly model = process.env.OPENAI_MODEL || "gpt-6.2-astra";
 
@@ -34,9 +35,10 @@ export class OpenAiAdapter implements AiProviderAdapter {
     });
 
     if (!response.ok) {
-      const detail = await response.text().catch(() => "");
-      // Do not expose provider response details or credentials to callers.
-      throw new Error(`OpenAI request failed with status ${response.status}: ${detail.slice(0, 300)}`);
+      const requestId = response.headers.get("x-request-id") ?? "unavailable";
+      // Record status and provider request ID only; never log credentials or prompt content.
+      this.logger.error("OpenAI Responses API returned HTTP " + response.status + " (request " + requestId + ")");
+      throw new Error("OpenAI request failed with HTTP " + response.status);
     }
 
     const data = await response.json() as {

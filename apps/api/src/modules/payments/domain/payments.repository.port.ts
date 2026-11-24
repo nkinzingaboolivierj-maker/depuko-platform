@@ -1,4 +1,5 @@
 import { PaymentIntent, Refund } from "./payment-state";
+import { ProviderEvent } from "./webhook";
 
 export const PAYMENTS_REPOSITORY = "PAYMENTS_REPOSITORY";
 
@@ -11,4 +12,6 @@ export interface PaymentsRepositoryPort {
   requestRefund(params: { id: string; intentId: string; paymentId: string; amountCents: number; currency: string; reason?: string }): Promise<void>;
   saveRefund(refund: Refund): Promise<void>;
   listRefunds(intentId: string): Promise<Refund[]>;
+  /** Deduplicates the provider event, persists the captured payment and posts the ledger atomically. */
+  settleWebhook(event: ProviderEvent): Promise<{ status: string; txId: string | null }>;
 }

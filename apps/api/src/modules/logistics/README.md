@@ -1,10 +1,12 @@
-# logistics module
+# Logistics module
 
-Transport/logistics coordination between projects, assets, and locations.
+Implemented authenticated logistics operations:
 
-**Status:** not yet implemented (Phase per §98 TBD). Follow the
-presentation/application/domain/infrastructure/tests layering used by
-`auth` and `services` when building this out. Before writing code, run
-through the New Feature Protocol (§94) and, if this module needs to represent
-something the Universal Service Engine could instead configure, the New
-Service Protocol (§95).
+- Organization managers create trips using non-retired vehicle assets and assign an organization member as driver.
+- Trips can be dispatched, started and completed through explicit state transitions.
+- Stops can be added only for confirmed/in-progress orders assigned to the trip driver.
+- Drivers/managers record arrival, loading, delivery proof, failures and reschedules.
+- Customers confirm delivery only when the stop is in delivered state.
+- Trip and stop reads are scoped to assigned drivers or organization members; customer confirmation is scoped to the order owner.
+
+Production acceptance still requires database migration verification and API end-to-end tests against real organization, assignment, order and asset records.

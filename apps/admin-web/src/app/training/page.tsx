@@ -1,0 +1,22 @@
+"use client";
+import { FormEvent,useCallback,useEffect,useState } from "react";
+import { useAdminSession } from "../../components/AdminSessionProvider";
+
+const API=process.env.NEXT_PUBLIC_API_BASE_URL??"https://depuko-api-production.up.railway.app/api/v1";
+type Course={id:string;title:string;summary:string;content_url:string|null;duration_minutes:number};
+async function call<T>(path:string,token:string,method="GET",body?:unknown):Promise<T>{
+ const response=await fetch(API+path,{method,headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
+ const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message??"Request failed ("+response.status+")");return data as T;
+}
+export default function AdminTraining(){
+ const {token,logout}=useAdminSession();const [courses,setCourses]=useState<Course[]>([]);const [title,setTitle]=useState("");const [summary,setSummary]=useState("");const [contentUrl,setContentUrl]=useState("");const [duration,setDuration]=useState("30");const [busy,setBusy]=useState(false);const [error,setError]=useState("");const [notice,setNotice]=useState("");
+ const refresh=useCallback(async()=>{const r=await call<{courses:Course[]}>("/training/courses",token);setCourses(r.courses??[])},[token]);
+ useEffect(()=>{if(token)void refresh().catch(e=>setError(e.message))},[refresh,token]);
+ async function create(event:FormEvent){event.preventDefault();setBusy(true);setError("");setNotice("");try{await call("/training/courses",token,"POST",{title,summary,contentUrl:contentUrl||undefined,durationMinutes:Number(duration)});setTitle("");setSummary("");setContentUrl("");setNotice("Training course published to the worker catalogue.");await refresh()}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
+ async function deactivate(id:string){setBusy(true);setError("");try{await call("/training/courses/"+id+"/deactivate",token,"POST");setNotice("Course deactivated.");await refresh()}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
+ return <div className="admin-shell"><aside className="admin-sidebar"><a href="/" className="admin-brand"><span className="admin-brand-mark">D</span> DEPUKO</a><div className="admin-workspace-label">Workspace</div><nav className="admin-nav"><a href="/">Overview</a><a href="/command-center">Command center</a><a href="/pricing">Fees & plans</a><a aria-current="page" href="/training">Worker training</a></nav><div className="admin-sidebar-foot">Training course creation requires administrator permission.</div></aside><main className="admin-main"><div className="admin-topbar"><span className="admin-breadcrumb">Workspace / Worker training</span><button className="admin-signout" onClick={logout}>Sign out</button></div><header className="admin-heading"><span className="admin-kicker">WORKFORCE DEVELOPMENT</span><h1>Training catalogue</h1><p>Create learning resources for workers. Completion is self-reported until an assessment process is added.</p></header>
+  {error&&<p className="admin-notice" role="alert">{error}</p>}{notice&&<p className="admin-notice" role="status">{notice}</p>}
+  <section className="admin-card"><h2>Create a course</h2><form onSubmit={create} style={{display:"grid",gap:12,maxWidth:720}}><label>Course title<input required minLength={3} maxLength={160} value={title} onChange={e=>setTitle(e.target.value)}/></label><label>Summary<textarea value={summary} onChange={e=>setSummary(e.target.value)} rows={3}/></label><label>Course material URL (HTTPS)<input type="url" value={contentUrl} onChange={e=>setContentUrl(e.target.value)} placeholder="https://…"/></label><label>Duration in minutes<input type="number" min={1} value={duration} onChange={e=>setDuration(e.target.value)}/></label><button disabled={busy}>{busy?"Saving…":"Publish course"}</button></form></section>
+  <section className="admin-card admin-section"><h2>Active courses</h2>{courses.length?courses.map(course=><article className="admin-assignment" key={course.id}><div><strong>{course.title}</strong><p>{course.summary}</p><small>{course.duration_minutes} minutes · {course.id}</small></div><button disabled={busy} onClick={()=>void deactivate(course.id)}>Deactivate</button></article>):<p>No active courses yet.</p>}</section>
+ </main></div>;
+}

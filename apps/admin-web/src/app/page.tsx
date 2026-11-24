@@ -1,47 +1,69 @@
 "use client";
-/**
- * ADMIN COMMAND CENTER (V7.2 directive 3C). Every panel reads REAL endpoints
- * with admin permissions: integration health, financial integrity, worker
- * verification queue. Sections whose backend module is not implemented show
- * that honestly - never fabricated metrics or badges. Sensitive operations
- * (verify/restrict) are permission-gated server-side; the UI never fakes
- * authorization. */
+import Link from "next/link";
 import { useState } from "react";
+import { useAdminSession } from "../components/AdminSessionProvider";
 import { adminApi } from "../lib/api";
 
 export default function Admin() {
-  const [token, setToken] = useState("");
-  const [panels, setPanels] = useState<{ attention: string[] } | null>(null);
+  const { token, logout } = useAdminSession();
+  const [status, setStatus] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   async function load() {
-    const attention: string[] = [];
+    setLoading(true);
+    const messages: string[] = [];
     try {
       const balance = await adminApi.balanceCheck(token);
-      attention.push(balance.healthy ? `Finance: ledger healthy (${balance.checked} tx checked)` : "FINANCE: UNBALANCED TRANSACTIONS FOUND - action required");
-    } catch { attention.push("Finance: balance check unavailable (requires admin session with finance:read)"); }
+      messages.push(balance.healthy
+        ? "Finance integrity healthy — " + balance.checked + " transactions checked"
+        : "Finance imbalance detected — review required");
+    } catch { messages.push("Finance check unavailable — verify finance:read permission"); }
     try {
-      const health = await adminApi.integrationHealth(token);
-      for (const h of health) {
-        attention.push(h.enabled ? `Integration ${h.kind}/${h.provider}: enabled` : `Integration ${h.kind}/${h.provider}: DISABLED - ${h.credential_configured ? "manually disabled" : "credentials missing"}`);
-      }
-    } catch { attention.push("Integrations: registry unreachable (requires integrations:manage)"); }
-    setPanels({ attention });
+      const integrations = await adminApi.integrationHealth(token);
+      integrations.forEach(item => messages.push("Integration " + item.kind + "/" + item.provider + ": " + (item.enabled ? "enabled" : "disabled")));
+    } catch { messages.push("Integration registry unavailable — verify integrations:manage permission"); }
+    setStatus(messages);
+    setLoading(false);
   }
 
-  return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: 24, fontFamily: "system-ui" }}>
-      <h1>DEPUKO Admin - Attention Center</h1>
-      <input placeholder="Admin session token" value={token} onChange={e => setToken(e.target.value)} style={{ padding: 12, width: 320 }} aria-label="session token" />
-      <div style={{ margin: 12 }}><button onClick={load}>Load status</button></div>
-      {panels && (
-        <ul style={{ lineHeight: 1.8 }}>
-          {panels.attention.map((a, i) => <li key={i}>{a}</li>)}
-        </ul>
-      )}
-      <p style={{ color: "#777", marginTop: 24 }}>
-        Payroll console: requires reviewed country rules (registry ships empty - owner action).
-        Trust decisions: human-reviewed only. Analytics: measured aggregates only, no forecasts.
-      </p>
+  return <div className={"admin-shell" + (sidebarOpen ? "" : " sidebar-collapsed")}>
+    <aside className="admin-sidebar">
+      <a href="/" className="admin-brand"><span className="admin-brand-mark">D</span> DEPUKO</a>
+      <div className="admin-workspace-label">Workspace</div>
+      <nav className="admin-nav">
+        <a aria-current="page" href="/">Overview</a>
+        <a href="/command-center">Command center</a>
+        <a href="/operations">Operations</a>
+        <a href="/pricing">Fees & plans</a>
+        <a href="https://depuko-platform-mainnn.vercel.app">Customer platform</a>
+      </nav>
+      <div className="admin-sidebar-foot">DEPUKO CONTROL PLANE<br/>Sensitive actions require authorization and human review.</div>
+    </aside>
+    <main className="admin-main">
+      <div className="admin-topbar">
+        <button className="sidebar-toggle" type="button" onClick={() => setSidebarOpen(value => !value)} aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"} aria-expanded={sidebarOpen}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <span className="admin-breadcrumb">Workspace / Overview</span>
+        <button className="admin-signout" onClick={logout}>Sign out</button>
+      </div>
+      <header className="admin-heading"><span className="admin-kicker">ADMINISTRATION</span><h1>Attention center</h1><p>Operational visibility for the DEPUKO platform.</p></header>
+      <div className="admin-notice">Only measured system responses are displayed. Unavailable modules are not represented by sample metrics.</div>
+      <section className="admin-section admin-grid">
+        <Link className="admin-card admin-link-card" href="/command-center"><div><strong>Command center</strong><span>System health, integrations, finance checks and trust actions.</span></div><b className="admin-link-arrow">Open</b></Link>
+        <Link className="admin-card admin-link-card" href="/operations"><div><strong>Operations</strong><span>Measured order analytics and operational controls.</span></div><b className="admin-link-arrow">Open</b></Link>
+        <Link className="admin-card admin-link-card" href="/pricing"><div><strong>Fees & subscriptions</strong><span>Configure separate registration fees and recurring plans by account category.</span></div><b className="admin-link-arrow">Open</b></Link>
+        <Link className="admin-card admin-link-card" href="/training"><div><strong>Worker training</strong><span>Create learning resources and track worker course completion.</span></div><b className="admin-link-arrow">Open</b></Link>
+      </section>
+      <section className="admin-section admin-card">
+        <h2>Quick system checks</h2><p>Run permission-gated checks using your verified administrator session.</p>
+        <div className="admin-form-row"><button disabled={loading} onClick={load}>{loading ? "Checking…" : "Run checks"}</button></div>
+        {status.length > 0 && <ul>{status.map((message, index) => <li key={index}>{message}</li>)}</ul>}
+      </section>
+      <section className="admin-section admin-grid three">
+        <article className="admin-card"><h2>People & trust</h2><p>Worker verification and account restrictions require human review.</p></article>
+        <article className="admin-card"><h2>Money</h2><p>Real-money payment flows remain disabled pending provider integration and end-to-end verification.</p></article>
+        <article className="admin-card"><h2>Payroll</h2><p>Unavailable until reviewed country-specific rules are configured.</p></article>
+      </section>
     </main>
-  );
+  </div>;
 }

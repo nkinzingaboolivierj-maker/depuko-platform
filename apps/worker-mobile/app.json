@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "DEPUKO Worker",
+    "slug": "depuko-worker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "depuko-worker",
+    "plugins": ["expo-secure-store"],
+    "android": { "package": "com.depuko.worker" },
+    "ios": { "bundleIdentifier": "com.depuko.worker" }
+  }
+}

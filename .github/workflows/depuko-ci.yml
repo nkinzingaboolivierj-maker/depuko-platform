@@ -1,0 +1,128 @@
+name: DEPUKO CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: depuko-ci-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Install, database migrations, typecheck, build and API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: depuko
+          POSTGRES_PASSWORD: depuko_ci
+          POSTGRES_DB: depuko_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U depuko -d depuko_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile
+          fi
+
+      - name: Upload generated pnpm lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: depuko-pnpm-lockfile
+          path: pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Commit generated pnpm lockfile to the release branch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ -n "$(git status --porcelain pnpm-lock.yaml)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add pnpm-lock.yaml
+            git commit -m "chore: commit generated pnpm lockfile"
+            git push origin "HEAD:${BRANCH}"
+          fi
+
+      - name: Verify fresh and upgrade database migrations
+        env:
+          PGPASSWORD: depuko_ci
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: depuko
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+          createdb depuko_fresh
+          createdb depuko_upgrade
+
+          for migration in database/migrations/*.sql; do
+            echo "Fresh database: applying $migration"
+            psql -d depuko_fresh -v ON_ERROR_STOP=1 -f "$migration"
+          done
+
+          for migration in database/migrations/*.sql; do
+            filename="$(basename "$migration")"
+            prefix="${filename%%_*}"
+            number=$((10#$prefix))
+            if [ "$number" -le 16 ]; then
+              echo "Upgrade database baseline: applying $filename"
+              psql -d depuko_upgrade -v ON_ERROR_STOP=1 -f "$migration"
+            fi
+          done
+
+          for migration in database/migrations/*.sql; do
+            filename="$(basename "$migration")"
+            prefix="${filename%%_*}"
+            number=$((10#$prefix))
+            if [ "$number" -ge 17 ]; then
+              echo "Upgrade database: applying $filename"
+              psql -d depuko_upgrade -v ON_ERROR_STOP=1 -f "$migration"
+            fi
+          done
+
+          for database in depuko_fresh depuko_upgrade; do
+            psql -d "$database" -v ON_ERROR_STOP=1 -c "SELECT to_regclass('public.users'), to_regclass('public.payment_intents'), to_regclass('public.billing_catalog_items'), to_regclass('public.training_courses'), to_regclass('public.file_objects');"
+          done
+
+      - name: TypeScript checks (including worker mobile)
+        run: pnpm typecheck
+
+      - name: Build workspace applications (including Android bundle)
+        run: pnpm build
+
+      - name: API unit tests
+        run: pnpm --filter @depuko/api test -- --runInBand --testPathIgnorePatterns=http-e2e

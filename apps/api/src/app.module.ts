@@ -33,26 +33,18 @@ import { CapabilitiesModule } from "./modules/capabilities/capabilities.module";
 import { OpportunitiesModule } from "./modules/opportunities/opportunities.module";
 import { QuotesModule } from "./modules/quotes/quotes.module";
 import { SecurityModule } from "./modules/security/security.module";
+import { BillingModule } from "./modules/billing/billing.module";
+import { TrainingModule } from "./modules/training/training.module";
 
-/**
- * V6 module graph: 31 modules. Baseline (auth, users, security, services)
- * + implemented domains + the 11 V6 domains. Frontend core (customer home,
- * orders; admin finance check; worker assignment loop) is wired to real
- * endpoints. See docs/final/DEPUKO-FINAL-IMPLEMENTATION-AUDIT.md for the
- * truthful per-module status: several V6 domains are domain+tests with
- * persistence pending; live providers remain NOT CONFIGURED.
- */
 @Module({
   imports: [
     DatabaseModule, AuditModule, AuthModule, SecurityModule, ServicesModule, QuotesModule,
     OrdersModule, FinanceModule, PaymentsModule, ProjectsModule,
-    OrganizationsModule, BusinessOnboardingModule,
+    OrganizationsModule, BusinessOnboardingModule, BillingModule, TrainingModule,
     CustomersModule, WorkforceModule, CommunicationModule, NotificationsModule,
     SchedulingModule, DispatchModule, ContractsModule, InventoryModule, AssetsModule,
-    AiModule,
-    HealthModule,
-    LogisticsModule, PayrollModule, FilesModule, SupportModule, TrustModule,
-    DisputesModule, ReviewsModule, AnalyticsModule, IntegrationMgmtModule,
+    AiModule, HealthModule, LogisticsModule, PayrollModule, FilesModule, SupportModule,
+    TrustModule, DisputesModule, ReviewsModule, AnalyticsModule, IntegrationMgmtModule,
     CapabilitiesModule, OpportunitiesModule,
   ],
 })

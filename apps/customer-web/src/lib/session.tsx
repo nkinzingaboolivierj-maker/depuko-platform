@@ -1,6 +1,5 @@
 "use client";
-/** Session context: opaque bearer token stored locally, used by the shared
- * API client. Real register/login calls only - no fake sessions. */
+/** Opaque bearer-token session context for the shared API client. */
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { api, ApiError } from "./api";
 
@@ -8,7 +7,7 @@ interface SessionValue {
   token: string | null;
   error: string | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, accountType?: "customer" | "worker") => Promise<boolean>;
   logout: () => void;
 }
 
@@ -29,21 +28,21 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setToken(r.sessionToken);
       return true;
     } catch (e) {
-      setError(e instanceof ApiError ? `Sign in failed (${e.status})` : "Network error");
+      setError(e instanceof ApiError ? "Sign in failed (" + e.status + ")" : "Network error");
       return false;
     }
   }, []);
 
-  const register = useCallback(async (email: string, password: string) => {
+  const register = useCallback(async (email: string, password: string, accountType: "customer" | "worker" = "customer") => {
     setError(null);
     try {
-      const r = await api.register({ email, password });
+      const r = await api.register({ email, password, accountType });
       if (!r.sessionToken) throw new Error("verify your email to activate the account");
       localStorage.setItem("depuko_session", r.sessionToken);
       setToken(r.sessionToken);
       return true;
     } catch (e) {
-      setError(e instanceof ApiError ? `Registration failed (${e.status})` : "Network error");
+      setError(e instanceof ApiError ? "Registration failed (" + e.status + ")" : "Network error");
       return false;
     }
   }, []);

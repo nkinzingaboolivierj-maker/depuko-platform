@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Button, FlatList, StyleSheet, Text, TextInput, View, ScrollView } from "react-native";
+import * as SecureStore from "expo-secure-store";
 import Profile from "./screens/Profile";
 import Safety from "./screens/Safety";
 import Opportunities from "./screens/Opportunities";
@@ -7,16 +8,24 @@ import Earnings from "./screens/Earnings";
 import Training from "./screens/Training";
 import Support from "./screens/Support";
 
-const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
+const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? "https://depuko-api-production.up.railway.app/api/v1";
 type Screen = "assignments" | "profile" | "safety" | "opportunities" | "earnings" | "training" | "support";
 
 export default function App() {
   const [token, setToken] = useState<string | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [assignments, setAssignments] = useState<{ id: string; status: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState<Screen>("assignments");
+
+  useEffect(() => {
+    SecureStore.getItemAsync("depuko_session")
+      .then(setToken)
+      .catch(() => setToken(null))
+      .finally(() => setSessionLoading(false));
+  }, []);
 
   async function login() {
     setLoading(true);
@@ -29,9 +38,18 @@ export default function App() {
       if (!res.ok) throw new Error(body?.message ?? "login failed");
       const sessionToken = body.sessionToken ?? body.token;
       if (!sessionToken) throw new Error("server did not return a session token");
+      await SecureStore.setItemAsync("depuko_session", sessionToken);
       setToken(sessionToken);
     } catch (e) { Alert.alert("Sign in failed", (e as Error).message); }
     finally { setLoading(false); }
+  }
+
+  async function logout() {
+    await SecureStore.deleteItemAsync("depuko_session");
+    setToken(null);
+    setAssignments([]);
+    setPassword("");
+    setScreen("assignments");
   }
 
   async function loadAssignments() {
@@ -55,35 +73,41 @@ export default function App() {
 
   useEffect(() => { if (token) loadAssignments(); }, [token]);
 
+  if (sessionLoading) return <View style={s.center}><ActivityIndicator size="large" color="#06152A" /></View>;
+
   if (!token) return (
     <View style={s.center}>
       <Text style={s.h}>DEPUKO Worker</Text>
+      <Text style={s.note}>Sign in with your registered worker account.</Text>
       <TextInput style={s.input} placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
       <TextInput style={s.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-      {loading ? <ActivityIndicator /> : <Button title="Sign in" onPress={login} disabled={!email || !password} />}
-      <Text style={s.note}>Use your registered worker account. A verified worker profile is required for opportunities.</Text>
+      {loading ? <ActivityIndicator color="#06152A" /> : <Button title="Sign in" color="#06152A" onPress={login} disabled={!email || !password} />}
+      <Text style={s.note}>A verified worker profile is required for opportunities.</Text>
     </View>
   );
 
   return (
     <View style={s.wrap}>
-      <Text style={s.h}>DEPUKO Worker</Text>
+      <View style={s.top}>
+        <Text style={s.h}>DEPUKO Worker</Text>
+        <Button title="Sign out" color="#06152A" onPress={logout} />
+      </View>
       <ScrollView horizontal style={s.tabs} contentContainerStyle={{ gap: 8 }}>
         {(["assignments","profile","safety","opportunities","earnings","training","support"] as Screen[]).map(item =>
-          <Button key={item} title={item[0].toUpperCase()+item.slice(1)} onPress={() => setScreen(item)} />)}
+          <Button key={item} color={screen===item?"#06152A":"#718096"} title={item[0].toUpperCase()+item.slice(1)} onPress={() => setScreen(item)} />)}
       </ScrollView>
       {screen === "assignments" && <View style={{ flex: 1 }}>
         <Text style={s.sub}>My assignments</Text>
-        {loading && <ActivityIndicator />}
+        {loading && <ActivityIndicator color="#06152A" />}
         <FlatList data={assignments} keyExtractor={a => a.id} renderItem={({ item }) => (
           <View style={s.row}>
             <View style={{ flex: 1 }}><Text>{item.id}</Text><Text>{item.status}</Text></View>
-            {item.status === "offered" && <Button title="Accept" onPress={() => act(item.id, "accept")} />}
-            {item.status === "accepted" && <Button title="Check in" onPress={() => act(item.id, "check-in")} />}
-            {item.status === "checked_in" && <Button title="Check out" onPress={() => act(item.id, "check-out")} />}
+            {item.status === "offered" && <Button title="Accept" color="#06152A" onPress={() => act(item.id, "accept")} />}
+            {item.status === "accepted" && <Button title="Check in" color="#06152A" onPress={() => act(item.id, "check-in")} />}
+            {item.status === "checked_in" && <Button title="Check out" color="#06152A" onPress={() => act(item.id, "check-out")} />}
           </View>
         )} />
-        <Button title="Refresh" onPress={loadAssignments} />
+        <Button title="Refresh" color="#06152A" onPress={loadAssignments} />
       </View>}
       {screen === "profile" && <Profile token={token} />}
       {screen === "safety" && <Safety token={token} />}
@@ -96,12 +120,13 @@ export default function App() {
 }
 
 const s = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12 },
-  wrap: { flex: 1, paddingTop: 48, paddingHorizontal: 16 },
-  h: { fontSize: 22, fontWeight: "700", marginBottom: 10 },
-  sub: { fontSize: 18, fontWeight: "600", marginVertical: 8 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12, backgroundColor: "#F5F7FA" },
+  wrap: { flex: 1, paddingTop: 48, paddingHorizontal: 16, backgroundColor: "#F5F7FA" },
+  top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  h: { fontSize: 26, fontWeight: "800", color: "#06152A", marginBottom: 10 },
+  sub: { fontSize: 18, fontWeight: "600", marginVertical: 8, color: "#06152A" },
   tabs: { maxHeight: 44, marginBottom: 8 },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 12, width: 280, borderRadius: 8, marginVertical: 5 },
-  note: { color: "#777", marginTop: 12, textAlign: "center" },
-  row: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
+  input: { borderWidth: 1, borderColor: "#d7e0eb", padding: 13, width: 280, borderRadius: 10, backgroundColor: "#fff", marginVertical: 5 },
+  note: { color: "#64748b", marginTop: 12, textAlign: "center" },
+  row: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#e2e8f0", backgroundColor: "#fff", borderRadius: 10, paddingHorizontal: 12 },
 });

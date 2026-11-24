@@ -1,7 +1,8 @@
-/** Payment intent / refund state machines (S40). */
+/** Payment intent / refund state machines. A provider-confirmed capture may
+ * arrive while the intent is still in its initial created state. */
 export const PAYMENT_INTENT_TRANSITIONS: Record<string, readonly string[]> = {
-  created: ["pending", "cancelled"],
-  pending: ["authorized", "failed", "cancelled"],
+  created: ["pending", "authorized", "settled", "cancelled"],
+  pending: ["authorized", "settled", "failed", "cancelled"],
   authorized: ["settled", "failed", "cancelled"],
   settled: ["refunded", "partially_refunded", "disputed"],
   partially_refunded: ["refunded"],
@@ -22,7 +23,7 @@ export class PaymentIntent {
   }
   transitionTo(next: string): void {
     if (!(PAYMENT_INTENT_TRANSITIONS[this.status] ?? []).includes(next)) {
-      throw new Error(`illegal payment transition ${this.status} -> ${next}`);
+      throw new Error("illegal payment transition " + this.status + " -> " + next);
     }
     this.status = next;
   }

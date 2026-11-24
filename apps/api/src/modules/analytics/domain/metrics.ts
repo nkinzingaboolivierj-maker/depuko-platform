@@ -23,7 +23,7 @@ export class AnalyticsReadModel {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
   totals(): { requests: number; completed: number; cancelled: number; disputes: number } {
-    const get = (n: string) => this.metrics.get(n)?.measuredValue ?? 0;
+    const get = (n: string) => [...this.metrics.values()].filter(metric => metric.name === n).reduce((sum, metric) => sum + metric.measuredValue, 0);
     return {
       requests: get("orders.count"),
       completed: get("orders.completed"),

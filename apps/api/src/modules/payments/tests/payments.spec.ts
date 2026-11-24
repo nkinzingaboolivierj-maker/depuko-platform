@@ -36,14 +36,35 @@ describe("Payments (S56 + S39)", () => {
     expect(second.status).toBe("duplicate");
     expect((await ledger.balances())["acc_cash"]).toBe(500);
   });
-  it("V5 fix #6: missing secret disables the rail, never blocks boot", () => {
+  it("routes production events through atomic persistence, not a separate dedup write", async () => {
+    const ledger = new InMemoryLedgerRepository();
+    const eventCalls: string[] = [];
+    const settlementCalls: string[] = [];
+    const events = { recordOnce: async (id: string) => { eventCalls.push(id); return true; } };
+    const settlement = { settleWebhook: async (event: { eventId: string }) => { settlementCalls.push(event.eventId); return { status: "settled", txId: "ledger_atomic" }; } };
+    const uc = new ProcessWebhookUseCase(new WebhookProcessor("atomic-secret"), new PostLedgerTransactionUseCase(ledger), events, settlement);
+    const ev = { eventId: "atomic-1", orderId: "order-1", outcome: "settled" as const, amountCents: 1234 };
+    const result = await uc.execute({ event: ev, signature: new WebhookProcessor("atomic-secret").sign(ev) });
+    expect(result).toEqual({ status: "settled", txId: "ledger_atomic" });
+    expect(settlementCalls).toEqual(["atomic-1"]);
+    expect(eventCalls).toEqual([]);
+  });
+  it("allows a provider-confirmed capture to settle an intent directly from created", () => {
+    const intent = new PaymentIntent("pi-created", "order-1", 1000, "RWF", "provider");
+    intent.settle();
+    expect(intent.status).toBe("settled");
+  });
+  it("rejects unsupported payment state transitions", () => {
+    const intent = new PaymentIntent("pi-invalid", "order-1", 1000, "RWF", "provider");
+    expect(() => intent.transitionTo("refunded")).toThrow(/illegal/);
+  });
+  it("missing provider secret disables the rail without blocking boot", () => {
     const off = new WebhookProcessor("");
     expect(off.disabled).toBe(true);
     expect(off.disabledReason).toMatch(/not configured/);
   });
   it("payment + refund state machines reject illegal moves", () => {
     const pi = new PaymentIntent("pi1", "o1", 1000, "RWF", "test");
-    expect(() => pi.settle()).toThrow(/illegal/);
     pi.transitionTo("pending");
     pi.transitionTo("authorized");
     pi.settle();
