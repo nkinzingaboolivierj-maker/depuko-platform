@@ -1,125 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { ThemeToggle } from "../components/ThemeProvider";
-import { api, ApiError } from "../lib/api";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { WorkspaceIcon, WorkspaceIconName } from "../components/WorkspaceIcon";
 
-type Service = { definitionId: string; domain: string; category: string; capabilities: string[]; type: string; configuration: Record<string, unknown> };
-
-const categories = [
-  { name: "Home & repairs", icon: "⌂", query: "home repair", tint: "mint" },
-  { name: "Design & creative", icon: "◇", query: "graphic design", tint: "peach" },
-  { name: "Film & photography", icon: "▣", query: "film production", tint: "lilac" },
-  { name: "Technology", icon: "⌘", query: "web development", tint: "blue" },
-  { name: "Events", icon: "▦", query: "event planning", tint: "pink" },
-  { name: "Transport", icon: "↗", query: "transport", tint: "yellow" },
+const prompts = ["Create a film", "Design a logo", "Build a website", "Find a professional"];
+const features: { title: string; description: string; href: string; icon: WorkspaceIconName }[] = [
+  { title: "DEPUKO AI", description: "Describe what you need and get guided to the right next step.", href: "/assistant", icon: "sparkles" },
+  { title: "Marketplace", description: "Explore services and connect with capable professionals.", href: "/business/services", icon: "grid" },
+  { title: "Projects", description: "Keep your requests, project activity and progress together.", href: "/projects", icon: "folder" },
+  { title: "Secure workspace", description: "Manage your account and get help when you need it.", href: "/support", icon: "shield" },
+];
+const categories: { title: string; prompt: string; icon: WorkspaceIconName }[] = [
+  { title: "Creative & design", prompt: "I need a creative or design professional", icon: "sparkles" },
+  { title: "Development & technology", prompt: "I need software or technology services", icon: "briefcase" },
+  { title: "Film & photography", prompt: "I need film or photography services", icon: "grid" },
+  { title: "Home & lifestyle", prompt: "I need help with a home or lifestyle service", icon: "home" },
 ];
 
-const examples = ["Create a short film", "Fix something at home", "Design a logo", "Plan an event"];
-
-export default function Home() {
+export default function HomePage() {
   const [need, setNeed] = useState("");
-  const [results, setResults] = useState<Service[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [guideOpen, setGuideOpen] = useState(false);
-  const [navOpen, setNavOpen] = useState(false);
-  const [guideInput, setGuideInput] = useState("");
-  const [guideMessage, setGuideMessage] = useState("Hi! I can help you describe what you need and search DEPUKO's service catalog. What are you looking for?");
-
-  async function search(query = need) {
-    const cleaned = query.trim();
-    if (!cleaned) return;
-    setNeed(cleaned); setLoading(true); setError(null); setResults(null);
-    try {
-      const first = await api.searchServices(cleaned);
-      let found = first as Service[];
-      // Try a few related terms if the catalog has no exact capability match.
-      const alternatives: Record<string, string[]> = {
-        film: ["film", "movie", "cinematography", "video production", "videography", "film production", "video editing"],
-        movie: ["movie", "film", "cinematography", "video production", "videography", "film production", "video editing"],
-        video: ["video", "videography", "video production", "film production", "video editing"],
-        logo: ["graphic design", "branding", "logo design"],
-        plumber: ["plumbing", "home repair"],
-        cleaning: ["home cleaning", "cleaning service"],
-      };
-      const key = Object.keys(alternatives).find(k => cleaned.toLowerCase().includes(k));
-      if (!found.length && key) {
-        const extra = await Promise.all(alternatives[key].map(term => api.searchServices(term).catch(() => [] as Service[])));
-        found = extra.flat().filter((service, i, arr) => arr.findIndex(x => x.definitionId === service.definitionId) === i);
-      }
-      setResults(found);
-    } catch (e) {
-      setError(e instanceof ApiError ? "We couldn't complete the search right now. Please try again." : "Connection problem. Check your internet and try again.");
-    } finally { setLoading(false); }
+  const router = useRouter();
+  function startConversation(value = need) {
+    const query = value.trim();
+    if (!query) return;
+    router.push("/assistant?prompt=" + encodeURIComponent(query));
   }
+  function submit(event: FormEvent) { event.preventDefault(); startConversation(); }
 
-  function guide(prompt: string) {
-    if (prompt.startsWith("I need:")) {
-      setGuideMessage(`Thanks for sharing: “${prompt.slice(7)}”. Try searching the catalog with a shorter service name, or choose a category above. I can offer guided help, but live AI chat isn't connected yet.`);
-      return;
-    }
-    setGuideMessage(prompt === "Find a provider"
-      ? "Tell me the service, where you need it, and when. You can also use the search box to check available providers."
-      : prompt === "Help me describe my project"
-      ? "Try describing the goal, the style you like, your budget range, and when you need it. Example: ‘I need a 60-second promotional film for my shop in Kigali next month.’"
-      : "DEPUKO helps you discover services, compare providers, and organize requests. Choose a category or tell me what you need. Open DEPUKO AI to continue this conversation.");
-  }
-
-  return (
-    <main className="depuko-page">
-      <header className="site-header">
-        <a className="brand" href="/" aria-label="DEPUKO home"><span className="brand-mark">D</span><span>DEPUKO</span></a>
-        <button className="nav-collapse-toggle" type="button" aria-expanded={navOpen} aria-controls="customer-main-nav" onClick={() => setNavOpen(v => !v)} aria-label={navOpen ? "Hide navigation" : "Show navigation"}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg></button>
-        <nav id="customer-main-nav" className={"header-nav" + (navOpen ? " nav-open" : "")} aria-label="Main navigation">
-          <a href="#categories">Explore services</a><a href="/assistant">Ask DEPUKO</a><a href="/business">For businesses</a><a href="/worker">For workers</a>
-        </nav>
-        <div className="header-actions"><ThemeToggle /><a className="sign-in" href="/login">Sign in</a><a className="button button-dark header-join" href="/register">Get started <span>↗</span></a></div>
-      </header>
-
-      <section className="hero">
-        <div className="hero-copy">
-          <span className="eyebrow"><span className="eyebrow-dot" /> SERVICES, SIMPLIFIED</span>
-          <h1>Big ideas.<br /><span>Made happen.</span></h1>
-          <p className="hero-sub">Find the right people to bring your ideas to life. Tell us what you need—in your own words.</p>
-          <form className="search-card" onSubmit={e => { e.preventDefault(); void search(); }}>
-            <span className="search-icon" aria-hidden="true">⌕</span>
-            <input value={need} onChange={e => setNeed(e.target.value)} placeholder="What do you need help with today?" aria-label="Describe what you need" />
-            <button className="search-submit" disabled={loading || !need.trim()}>{loading ? "Searching…" : "Find help"} <span>→</span></button>
-          </form>
-          <p className="search-hint">Try: “I need someone to make a short film”</p>
-          <div className="example-chips">{examples.map(x => <button key={x} onClick={() => { setNeed(x); void search(x); }}>{x}</button>)}</div>
-        </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="art-orbit orbit-one" /><div className="art-orbit orbit-two" />
-          <div className="art-card art-card-main"><div className="art-spark">✦</div><div className="art-main-title">Your idea,<br />in motion.</div><div className="art-line" /><div className="art-foot"><span>DEPUKO</span><span>01 / 06</span></div></div>
-          <div className="art-float art-float-top"><span className="float-icon">✓</span><span><b>Good things start</b><small>with one idea</small></span></div>
-          <div className="art-float art-float-bottom"><span className="float-emoji">▣</span><span><b>Creative projects</b><small>Find your team</small></span></div>
-          <div className="art-star star-a">✦</div><div className="art-star star-b">✧</div>
-        </div>
-      </section>
-
-      <section className="trust-row"><span>Made for the way you work</span><div><span>✦</span> Discover local talent</div><div><span>↗</span> Simple, transparent</div><div><span>♡</span> Built around your needs</div></section>
-
-      <section className="category-section" id="categories">
-        <div className="section-heading"><div><span className="eyebrow eyebrow-muted">EXPLORE</span><h2>What can we help with?</h2><p>Start with a category or search for exactly what you have in mind.</p></div><a href="#categories" className="text-link">Explore all <span>↗</span></a></div>
-        <div className="category-grid">{categories.map(c => <button className="category-card" key={c.name} onClick={() => { setNeed(c.query); void search(c.query); }}><span className={"category-icon " + c.tint}>{c.icon}</span><span className="category-name">{c.name}</span><span className="category-arrow">↗</span></button>)}</div>
-      </section>
-
-      {(results || error) && <section className="results-panel" aria-live="polite"><div className="section-heading"><div><span className="eyebrow eyebrow-muted">SEARCH RESULTS</span><h2>{results?.length ? "Services we found" : "Let's find another way"}</h2></div><button className="clear-search" onClick={() => { setResults(null); setError(null); }}>Clear ×</button></div>
-        {error && <p className="notice notice-error">{error}</p>}
-        {results && results.length > 0 && <div className="result-grid">{results.map((s, i) => <article className="result-card" key={s.definitionId}><div className="result-art">{["✦","◈","✳"][i % 3]}</div><div><h3>{s.category || "Service listing"}</h3><p>{s.capabilities?.length ? s.capabilities.join(" · ") : "Published service on DEPUKO"}</p><small>{s.domain} · {s.type}</small></div></article>)}</div>}
-        {results && results.length === 0 && <div className="empty-state"><div className="empty-icon">✧</div><h3>No providers found for “{need}” just yet.</h3><p>Try a broader term, explore a category, or tell us more about your project. We won't leave you at a dead end.</p><div className="empty-actions"><button className="button button-dark" onClick={() => setGuideOpen(true)}>Help me shape my request <span>→</span></button><button className="button button-light" onClick={() => { setNeed(""); setResults(null); }}>Try another search</button><a className="button button-light" href="/support">Request a service</a></div></div>}
-      </section>}
-
-      <section className="how-section"><div className="how-heading"><span className="eyebrow eyebrow-muted">HOW IT WORKS</span><h2>From idea to done.<br /><span>Without the stress.</span></h2></div><div className="how-steps"><article><span>01</span><div className="step-icon">✎</div><h3>Tell us what you need</h3><p>Describe your idea. No complicated forms or jargon.</p></article><article><span>02</span><div className="step-icon">⌕</div><h3>Find the right people</h3><p>Discover services and providers that fit your needs.</p></article><article><span>03</span><div className="step-icon">✦</div><h3>Make it happen</h3><p>Connect, plan, and move your project forward.</p></article></div></section>
-
-      <section className="provider-cta"><div><span className="eyebrow">FOR SERVICE PROVIDERS</span><h2>Your skills deserve<br />to be discovered.</h2><p>Join DEPUKO and connect with people looking for what you do best.</p></div><a href="/register" className="button button-white">Offer your services <span>↗</span></a><div className="cta-decoration">✦</div></section>
-
-      <footer className="site-footer"><a className="brand brand-footer" href="/"><span className="brand-mark">D</span><span>DEPUKO</span></a><span>Ideas meet people who make them real.</span><div><a href="/support">Help</a><a href="/login">Sign in</a><a href="/register">Join DEPUKO</a></div><small>© DEPUKO</small></footer>
-
-      <button className="guide-launcher" onClick={() => setGuideOpen(v => !v)} aria-label="Open DEPUKO guide"><span>✦</span><b>Need help?</b></button>
-      {guideOpen && <aside className="guide-panel" aria-label="DEPUKO guide"><div className="guide-head"><span className="guide-avatar">✦</span><div><b>DEPUKO guide</b><small>Guided help</small></div><button onClick={() => setGuideOpen(false)} aria-label="Close guide">×</button></div><div className="guide-body"><p>{guideMessage}</p><div className="guide-prompts"><button onClick={() => guide("Find a provider")}>Find a provider</button><button onClick={() => guide("Help me describe my project")}>Help describe my project</button><button onClick={() => guide("How DEPUKO works")}>How DEPUKO works</button><a href="/assistant" className="guide-open-link">Open conversation →</a></div></div><form className="guide-input" onSubmit={e => { e.preventDefault(); if (guideInput.trim()) { guide(`I need: ${guideInput.trim()}`); setGuideInput(""); } }}><input value={guideInput} onChange={e => setGuideInput(e.target.value)} placeholder="Tell us what you need…" aria-label="Message DEPUKO guide" /><button aria-label="Send message" disabled={!guideInput.trim()}>↑</button></form></aside>}
-    </main>
-  );
+  return <div className="home-workspace">
+    <section className="dp-home-hero">
+      <div className="dp-home-copy">
+        <div className="dp-home-eyebrow">YOUR ALL-IN-ONE SERVICES WORKSPACE</div>
+        <h1>Build. Connect.<br/><span>Grow together.</span></h1>
+        <p>Your all-in-one platform to find services, build projects and achieve more. Tell DEPUKO what you need and we’ll help you find the right next step.</p>
+        <form className="dp-home-composer" onSubmit={submit}>
+          <WorkspaceIcon name="search" size={19}/>
+          <input value={need} onChange={event => setNeed(event.target.value)} placeholder="Start a conversation with DEPUKO AI..." aria-label="Describe what you need"/>
+          <button type="submit" disabled={!need.trim()} aria-label="Start conversation"><WorkspaceIcon name="send" size={17}/></button>
+        </form>
+        <div className="dp-home-prompts">{prompts.map(prompt => <button key={prompt} type="button" onClick={() => startConversation(prompt)}>{prompt}</button>)}</div>
+      </div>
+    </section>
+    <section>
+      <div className="dp-home-section-head"><div><h2>Everything you need, in one workspace</h2><p>Move from an idea to the people and services that make it happen.</p></div><Link href="/assistant">Open DEPUKO AI <WorkspaceIcon name="arrow" size={14}/></Link></div>
+      <div className="dp-feature-grid" style={{marginTop:15}}>
+        {features.map(item => <Link key={item.title} className="dp-feature-card" href={item.href}><span className="dp-feature-icon"><WorkspaceIcon name={item.icon} size={18}/></span><strong>{item.title}</strong><p>{item.description}</p></Link>)}
+      </div>
+    </section>
+    <section>
+      <div className="dp-home-section-head"><div><h2>Explore by category</h2><p>Start with the area closest to your goal.</p></div><Link href="/business/services">Browse marketplace <WorkspaceIcon name="arrow" size={14}/></Link></div>
+      <div className="dp-category-grid" style={{marginTop:15}}>
+        {categories.map(item => <button key={item.title} className="dp-category-card" type="button" onClick={() => startConversation(item.prompt)}><WorkspaceIcon name={item.icon} size={18}/><span>{item.title}</span><WorkspaceIcon name="arrow" size={13}/></button>)}
+      </div>
+    </section>
+  </div>;
 }
